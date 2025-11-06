@@ -1,0 +1,45 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Prata&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --bg: #f7fafc;
+    --muted: #6b7280;
+    --accent: #6366f1; /* indigo-500 */
+}
+
+@layer base {
+    html, body, #root {
+        height: 100%;
+    }
+        body {
+            background-color: var(--bg);
+            color: #111827;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        }
+    h1, h2, h3, h4, h5 {
+        font-family: 'Prata', serif;
+    }
+}
+
+/* small helper tweaks */
+.container-max {
+    max-width: 1280px;
+}
+
+.prata-regular {
+    font-family: "Prata", serif;
+    font-weight: 400;
+}
+
+/* mobile active link tweak */
+@media (max-width: 640px) {
+    a.active{
+        background-color: black;
+        color: white;
+    }
+}
