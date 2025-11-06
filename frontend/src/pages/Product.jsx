@@ -92,27 +92,38 @@ const Product = () => {
 
           {/* Sizes */}
           {Array.isArray(productData.sizes) && productData.sizes.length > 0 && (
-            <div className="flex flex-col gap-4 my-8">
-              <p>Select Size</p>
-              <div className="flex gap-2 flex-wrap">
-                {productData.sizes.map((item, index) => (
-                  <button
-                    key={index}
-                    onClick={() =>
-                      setSelectedSize((prev) => (prev === item ? "" : item))
-                    }
-                    className={`min-w-[50px] py-2 px-4 rounded-md font-medium transition-all duration-200 ${
-                      selectedSize === item
-                        ? "bg-orange-500 text-white shadow-md scale-105"
-                        : "bg-white border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700"
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+  <div className="flex flex-col gap-4 my-8">
+    <p>Select Size</p>
+    <div className="flex gap-2 flex-wrap">
+      {[...productData.sizes]
+        .sort((a, b) => {
+          const order = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+          const ai = order.indexOf(a);
+          const bi = order.indexOf(b);
+          if (ai === -1 && bi === -1) return a.localeCompare(b); // nếu không nằm trong danh sách chuẩn
+          if (ai === -1) return 1;
+          if (bi === -1) return -1;
+          return ai - bi;
+        })
+        .map((item, index) => (
+          <button
+            key={index}
+            onClick={() =>
+              setSelectedSize((prev) => (prev === item ? "" : item))
+            }
+            className={`min-w-[50px] py-2 px-4 rounded-md font-medium transition-all duration-200 ${
+              selectedSize === item
+                ? "bg-orange-500 text-white shadow-md scale-105"
+                : "bg-white border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700"
+            }`}
+          >
+            {item}
+          </button>
+        ))}
+    </div>
+  </div>
+)}
+
 
           {/* Add to cart */}
           <button
