@@ -9,6 +9,7 @@ use Illuminate\Support\Carbon;
 
 class ProductController extends Controller
 {
+
     public function addProduct(Request $request)
     {
         $request->validate([
@@ -31,9 +32,6 @@ class ProductController extends Controller
             'date' => time(), 
         ]);
 
-        // ✅ Thêm id ảo để React nhận đúng product.id
-        $product->id = (string) $product->_id;
-
         return response()->json([
             'success' => true,
             'message' => 'Product added successfully',
@@ -41,13 +39,10 @@ class ProductController extends Controller
         ]);
     }
 
+ 
     public function listProducts()
     {
-        // ✅ Map toàn bộ danh sách product
-        $products = Product::all()->map(function ($product) {
-            $product->id = (string) $product->_id;
-            return $product;
-        });
+        $products = Product::all();
 
         return response()->json([
             'success' => true,
@@ -55,8 +50,10 @@ class ProductController extends Controller
         ]);
     }
 
+   
     public function removeProduct(Request $request)
     {
+        
         Product::where('_id', $request->productId)->delete(); 
 
         return response()->json([
@@ -65,22 +62,23 @@ class ProductController extends Controller
         ]);
     }
 
+    
     public function singleProduct(Request $request)
     {
+        
         $product = Product::find($request->productId); 
 
         if (!$product) {
             return response()->json(['success' => false, 'message' => 'Product not found'], 404);
         }
 
-        // ✅ Thêm id để frontend dùng product.id
-        $product->id = (string) $product->_id;
-
         return response()->json(['success' => true, 'product' => $product]);
     }
 
+    
     public function updateProduct(Request $request, $id)
     {
+      
         $product = Product::find($id);
 
         if (!$product) {
@@ -96,10 +94,8 @@ class ProductController extends Controller
             'sizes' => $request->sizes ? $request->sizes : $product->sizes, 
             'bestseller' => $request->bestseller == "true" ? true : false, 
             'image' => $request->image ? $request->image : $product->image, 
-            'date' => time(),
+            'date' => time(), 
         ]);
-
-        $product->id = (string) $product->_id;
 
         return response()->json([
             'success' => true,
