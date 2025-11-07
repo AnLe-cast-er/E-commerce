@@ -15,16 +15,15 @@ const ShopContextProvider = ({ children }) => {
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState(() => {
-    // Load cart từ localStorage để tránh bị mất khi re-render
     const stored = localStorage.getItem("cartData");
     return stored ? JSON.parse(stored) : {};
   });
   const [products, setProducts] = useState([]);
   const [token, setToken] = useState(localStorage.getItem("token") || null);
 
-  const cartLoaded = useRef(false); // tránh double fetch từ Strict Mode
+  const cartLoaded = useRef(false); 
 
-  // Đồng bộ localStorage mỗi khi cartItems thay đổi
+
   useEffect(() => {
     localStorage.setItem("cartData", JSON.stringify(cartItems));
   }, [cartItems]);
@@ -36,16 +35,17 @@ const getProductsData = async (retries = 3, delay = 2000) => {
 
     if (response.data && Array.isArray(response.data.products)) {
       const normalized = response.data.products.map(item => ({
-        _id: item._id || item.id, // 🧩 Fix: hỗ trợ cả Mongo _id hoặc MySQL id
+        _id: item._id || item.id, 
         name: item.name,
         description: item.description,
         image: item.image,
         price: item.price,
         category: item.category,
         bestseller: item.bestseller,
+        sizes: item.sizes || [],  
       }));
 
-      console.log("🧩 Normalized products:", normalized);
+
       setProducts(normalized);
     }
   } catch (error) {
@@ -54,7 +54,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
       setTimeout(() => getProductsData(retries - 1, delay * 2), delay);
     } else {
       console.error("Error fetching products:", error);
-      toast.error("Không thể tải danh sách sản phẩm");
+      toast.error("Cannot load product");
     }
   }
 };
@@ -137,14 +137,12 @@ const getProductsData = async (retries = 3, delay = 2000) => {
     const currentQty = newCart[itemId].sizes[size] || 0;
     newCart[itemId].sizes[size] = currentQty + 1;
     
-    console.log("🔄 [addToCart] Updated cart before setState:", newCart);
     setCartItems(newCart);
 
     // Show success message
     toast.success("Added to cart!");
 
     if (!token) {
-      console.log("🔐 [addToCart] No token, saving to localStorage only");
       return toast.error("Please log in to save cart to your account");
     }
 
