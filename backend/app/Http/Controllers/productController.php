@@ -2,52 +2,50 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Product\AddProductRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Product\SingleProductRequest;
+use App\Http\Requests\Product\RemoveProductRequest;
 use App\Models\Product;
-use Illuminate\Http\Request;
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
-use Illuminate\Support\Carbon; 
+use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
 {
-    public function addProduct(Request $request)
+    public function addProduct(AddProductRequest $request): JsonResponse
     {
-        $request->validate([
-            'name' => 'required|string',
-            'price' => 'required|numeric',
-            'image' => 'required|array'
-        ]);
+        $data = $request->validated();
 
-        $images = $request->image; 
-
-        $product = Product::create([
-            'name' => $request->name,
-            'description' => $request->description ?? '',
-            'category' => $request->category ?? 'Men',
-            'subCategory' => $request->subCategory ?? 'Topwear', 
-            'price' => $request->price,
-            'sizes' => $request->sizes, 
-            'bestseller' => $request->bestseller == "true" ? true : false, 
-            'image' => $images, 
-            'date' => time(), 
-        ]);
-
-        // ✅ Thêm id ảo để React nhận đúng product.id
-        $product->id = (string) $product->_id;
+        $product = Product::create($data);
 
         return response()->json([
-            'success' => true,
-            'message' => 'Product added successfully',
-            'product' => $product
+            'message' => 'Product created successfully',
+            'data' => $product
+        ], 201);
+    }
+
+    public function updateProduct(UpdateProductRequest $request, $id): JsonResponse
+    {
+        $data = $request->validated();
+        $product = Product::findOrFail($id);
+        $product->update($data);
+
+        return response()->json([
+            'message' => 'Product updated successfully',
+            'data' => $product
         ]);
     }
 
+    public function singleProduct(SingleProductRequest $request, $id): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+
+        return response()->json([
+            'data' => $product
+        ]);
+    }
     public function listProducts()
     {
-        // ✅ Map toàn bộ danh sách product
-        $products = Product::all()->map(function ($product) {
-            $product->id = (string) $product->_id;
-            return $product;
-        });
+        $products = Product::all();
 
         return response()->json([
             'success' => true,
@@ -55,56 +53,14 @@ class ProductController extends Controller
         ]);
     }
 
-    public function removeProduct(Request $request)
+
+    public function removeProduct(RemoveProductRequest $request, $id): JsonResponse
     {
-        Product::where('_id', $request->productId)->delete(); 
+        $product = Product::findOrFail($id);
+        $product->delete();
 
         return response()->json([
-            'success' => true,
             'message' => 'Product removed successfully'
-        ]);
-    }
-
-    public function singleProduct(Request $request)
-    {
-        $product = Product::find($request->productId); 
-
-        if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Product not found'], 404);
-        }
-
-        // ✅ Thêm id để frontend dùng product.id
-        $product->id = (string) $product->_id;
-
-        return response()->json(['success' => true, 'product' => $product]);
-    }
-
-    public function updateProduct(Request $request, $id)
-    {
-        $product = Product::find($id);
-
-        if (!$product) {
-            return response()->json(['success' => false, 'message' => 'Product not found'], 404);
-        }
-
-        $product->update([
-            'name' => $request->name ?? $product->name,
-            'description' => $request->description ?? $product->description,
-            'price' => $request->price ?? $product->price,
-            'category' => $request->category ?? $product->category,
-            'subCategory' => $request->subCategory ?? $product->subCategory, 
-            'sizes' => $request->sizes ? $request->sizes : $product->sizes, 
-            'bestseller' => $request->bestseller == "true" ? true : false, 
-            'image' => $request->image ? $request->image : $product->image, 
-            'date' => time(),
-        ]);
-
-        $product->id = (string) $product->_id;
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Product updated successfully',
-            'product' => $product
         ]);
     }
 }
