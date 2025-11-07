@@ -3,15 +3,33 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Jenssegers\Mongodb\Eloquent\Model as MongoModel;
-class User extends Authenticatable
-{
-    use HasFactory;
+use MongoDB\Laravel\Eloquent\Model; 
+use Illuminate\Auth\Authenticatable;
+use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
+use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
 
-    protected $fillable = ['name', 'email', 'password', 'cartData'];
+class User extends Model implements AuthenticatableContract
+{
+    use HasFactory, Authenticatable, HasApiTokens, Notifiable;
+
+    protected $connection = 'mongodb'; 
+    protected $collection = 'users';
+
+    protected $fillable = [
+        'name',
+        'email', 
+        'password',
+        'cartData'
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
 
     protected $casts = [
         'cartData' => 'array',
+        'email_verified_at' => 'datetime',
     ];
 }
