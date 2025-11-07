@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { assets } from "../assets/assets";
 import axios from "axios";
-
 import { toast } from "react-toastify";
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
+
 const Add = () => {
   const [images, setImages] = useState([null, null, null, null]);
   const [name, setName] = useState("");
@@ -21,15 +21,12 @@ const Add = () => {
 
     const data = new FormData();
     data.append("file", file);
-    data.append("upload_preset", "mern_ecommerce_preset"); // 🔹 preset bạn tạo trong Cloudinary
-    data.append("cloud_name", "do0o4i3pu"); // 🔹 thay bằng cloud name của bạn
+    data.append("upload_preset", "mern_ecommerce_preset");
+    data.append("cloud_name", "do0o4i3pu");
 
     const res = await fetch(
       "https://api.cloudinary.com/v1_1/do0o4i3pu/image/upload",
-      {
-        method: "POST",
-        body: data,
-      }
+      { method: "POST", body: data }
     );
 
     const json = await res.json();
@@ -58,7 +55,6 @@ const Add = () => {
       toast.info("Uploading images to Cloudinary...");
       const imageUrls = [];
 
-      // Upload từng ảnh
       for (let img of images) {
         if (img) {
           const url = await uploadToCloudinary(img);
@@ -66,15 +62,16 @@ const Add = () => {
         }
       }
 
+      // Chuẩn hóa dữ liệu gửi backend
       const productData = {
         name,
         description,
-        category,
-        subCategory,
-        price,
+        category_id: category,      // backend thường validate category_id
+        sub_category: subCategory,  // backend validate sub_category
+        price: parseFloat(price),   // chuyển sang number
         sizes,
         bestseller,
-        images: imageUrls, // Gửi mảng URL thay vì file
+        images: imageUrls,
       };
 
       console.log("🟢 Sending product data:", productData);
@@ -85,7 +82,7 @@ const Add = () => {
           Authorization: `Bearer ${token}`,
         },
       };
-      console.log('🟣 Token from localStorage:', token);
+
       const response = await axios.post(
         `${backendUrl}/api/product/add`,
         productData,
@@ -104,8 +101,15 @@ const Add = () => {
         toast.error(response.data.message);
       }
     } catch (error) {
-      console.error("Error adding product:", error);
-      toast.error("Failed to add product");
+      if (error.response) {
+        console.log("Validation errors:", error.response.data);
+        toast.error(
+          "Validation error: " + JSON.stringify(error.response.data.errors)
+        );
+      } else {
+        console.error("Error adding product:", error);
+        toast.error("Failed to add product");
+      }
     } finally {
       setLoading(false);
     }
@@ -118,6 +122,7 @@ const Add = () => {
         onSubmit={onSubmitHandler}
         className="flex flex-col w-full items-start gap-6 p-6 bg-white rounded-lg shadow-md"
       >
+        {/* Image Upload */}
         <div>
           <p className="mb-2">Upload Image</p>
           <div className="flex gap-3">
@@ -143,6 +148,7 @@ const Add = () => {
           </div>
         </div>
 
+        {/* Name */}
         <div className="w-full">
           <p className="mb-2">Product Name</p>
           <input
@@ -155,6 +161,7 @@ const Add = () => {
           />
         </div>
 
+        {/* Description */}
         <div className="w-full">
           <p className="mb-2">Product Description</p>
           <textarea
@@ -166,6 +173,7 @@ const Add = () => {
           />
         </div>
 
+        {/* Category, Subcategory, Price */}
         <div className="flex flex-col sm:flex-row gap-4 w-full">
           <div>
             <p>Product Category</p>
@@ -206,6 +214,7 @@ const Add = () => {
           </div>
         </div>
 
+        {/* Sizes */}
         <div className="w-full">
           <p className="mb-2">Product Sizes</p>
           <div className="flex gap-2 flex-wrap">
@@ -232,6 +241,7 @@ const Add = () => {
           </div>
         </div>
 
+        {/* Bestseller */}
         <div className="flex gap-2 mt-2">
           <input
             onChange={() => setBestseller((prev) => !prev)}
