@@ -49,21 +49,21 @@ class UserController extends Controller
     }
 
     public function adminLogin(AdminLoginRequest $request)
-    {
-        if (
-            $request->email != env('ADMIN_EMAIL') ||
-            $request->password != env('ADMIN_PASSWORD')
-        ) {
-            return response()->json(['success' => false, 'message' => 'Invalid admin credentials']);
-        }
+{
+    $user = User::where('email', $request->email)->first();
 
-        $token = JWT::encode(
-            ['email' => $request->email, 'isAdmin' => true, 'exp' => time() + 86400],
-            env('JWT_SECRET'),
-            'HS256'
-        );
-
-        return response()->json(['success' => true, 'token' => $token]);
+    if (!$user || !Hash::check($request->password, $user->password) || !$user->is_admin) {
+        return response()->json(['success' => false, 'message' => 'Invalid admin credentials']);
     }
+
+    $token = JWT::encode(
+        ['id' => $user->_id, 'isAdmin' => true, 'exp' => time() + 86400],
+        env('JWT_SECRET'),
+        'HS256'
+    );
+
+    return response()->json(['success' => true, 'token' => $token]);
+}
+
     
 }
