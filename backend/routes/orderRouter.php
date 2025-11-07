@@ -1,18 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\OrderController; // Phải import Controller của bạn
+use App\Http\Controllers\OrderController; 
 
-Route::middleware(['admin.auth'])->group(function () {
-
-    Route::get('/orders/list', [OrderController::class, 'allOrders']);
-    
-    Route::patch('/orders/status', [OrderController::class, 'updateStatus']);
+Route::middleware(['admin.auth'])->prefix('order')->group(function () {
+    Route::get('/list', [OrderController::class, 'allOrders']);
+    Route::patch('/status', [OrderController::class, 'updateStatus']);
 });
 
-Route::middleware(['auth.user'])->group(function () {
-    
-    Route::post('/orders/place', [OrderController::class, 'placeOrder']);
-    Route::post('/orders/vnpay', [OrderController::class, 'placeOrderVnpay']);
-    Route::get('/orders/userorders', [OrderController::class, 'userOrders']);
+Route::middleware(['auth.user'])->prefix('order')->group(function () {
+    Route::post('/place', [OrderController::class, 'placeOrder']);
+    Route::post('/vnpay', [OrderController::class, 'placeOrderVnpay']);
+    Route::get('/userorders', [OrderController::class, 'userOrders']);
 });
