@@ -15,7 +15,7 @@ class PlaceOrderRequest extends FormRequest
     {
         return [
             'items' => 'required|array|min:1',
-            'items.*.productId' => 'required|integer|exists:products,id',
+            'items.*.productId' => 'required|string',
             'items.*.name' => 'required|string',
             'items.*.price' => 'required|numeric|min:0',
             'items.*.quantity' => 'required|integer|min:1',

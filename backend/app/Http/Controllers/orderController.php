@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request; // Phải có import Request
 use App\Http\Requests\Order\PlaceOrderRequest;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
 
@@ -15,8 +16,17 @@ class OrderController extends Controller
         $validated = $request->validated();
         $method = strtoupper($validated['method'] ?? 'COD');
 
+        // KHẮC PHỤC LỖI: Lấy đối tượng user đang được xác thực một cách chính xác
+        $authenticatedUser = $request->user(); 
+
+        // Kiểm tra an toàn (Mặc dù middleware đã xử lý, nhưng nên kiểm tra để tránh lỗi 500)
+        if (!$authenticatedUser) {
+            return response()->json(["success" => false, "message" => "Unauthenticated"], 401);
+        }
+
         $orderData = [
-            "user_id" => $request->user->id,
+            // SỬA LỖI: Thay thế $request->user->id bằng $authenticatedUser->id
+            "user_id" => $authenticatedUser->id,
             "items" => array_map(function ($item) {
                 return [
                     "product_id" => $item["productId"],
@@ -38,7 +48,9 @@ class OrderController extends Controller
         $order = Order::create($orderData);
 
         if ($method === "COD") {
-            User::where("id", $request->user->id)->update(["cartData" => []]);
+            // SỬA LỖI: Thay thế $request->user->id bằng $authenticatedUser->id
+            // Giả định 'id' trong User Model tương đương với _id của MongoDB
+            User::where("id", $authenticatedUser->id)->update(["cartData" => []]); 
         }
 
         return response()->json([
