@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\User\RegisterUserRequest;
+use App\Http\Requests\User\LoginUserRequest;
+use App\Http\Requests\User\AdminLoginRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
 
 class UserController extends Controller
 {
@@ -19,26 +20,21 @@ class UserController extends Controller
         );
     }
 
-    public function registerUser(Request $request)
+    public function registerUser(RegisterUserRequest $request)
     {
-        $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:8'
-        ]);
-
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $this->createToken($user->id);
-
-        return response()->json(['success' => true, 'token' => $token]);
+        return response()->json([
+            'success' => true,
+            'token' => $this->createToken($user->id)
+        ]);
     }
 
-    public function loginUser(Request $request)
+    public function loginUser(LoginUserRequest $request)
     {
         $user = User::where('email', $request->email)->first();
 
@@ -46,20 +42,13 @@ class UserController extends Controller
             return response()->json(['success' => false, 'message' => "Invalid credentials"]);
         }
 
-        $token = $this->createToken($user->id);
-
-        return response()->json(['success' => true, 'token' => $token]);
-    }
-
-    public function getUserProfile(Request $request)
-    {
         return response()->json([
             'success' => true,
-            'user' => $request->user
+            'token' => $this->createToken($user->id)
         ]);
     }
 
-    public function adminLogin(Request $request)
+    public function adminLogin(AdminLoginRequest $request)
     {
         if (
             $request->email != env('ADMIN_EMAIL') ||
