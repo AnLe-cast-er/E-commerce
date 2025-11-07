@@ -16,12 +16,12 @@ class CartController extends Controller
         $size   = $request->size;
 
         if (!$itemId || !$size) {
-            return response()->json(["success" => false, "message" => "Thiếu dữ liệu"], 400);
+            return response()->json(["success" => false, "message" => "Missing data"], 400);
         }
 
         $product = Product::find($itemId);
         if (!$product) {
-            return response()->json(["success" => false, "message" => "Không tìm thấy sản phẩm"], 404);
+            return response()->json(["success" => false, "message" => "No products found"], 404);
         }
 
         $user = User::find($userId);
@@ -51,7 +51,7 @@ class CartController extends Controller
         return response()->json([
             "success" => true,
             "cartData" => $cart,
-            "message" => "Đã thêm vào giỏ"
+            "message" => "Added to cart"
         ]);
     }
 
@@ -64,7 +64,7 @@ class CartController extends Controller
         $quantity = $request->quantity;
 
         if (!$itemId || !$size || $quantity === null) {
-            return response()->json(["success" => false, "message" => "Thiếu dữ liệu"], 400);
+            return response()->json(["success" => false, "message" => "Missing data"], 400);
         }
 
         $user = User::find($userId);
@@ -81,7 +81,7 @@ class CartController extends Controller
             if (!isset($cart[$itemId])) {
                 $product = Product::find($itemId);
                 if (!$product) {
-                    return response()->json(["success" => false, "message" => "Không tìm thấy sản phẩm"], 404);
+                    return response()->json(["success" => false, "message" => "No products found"], 404);
                 }
 
                 $cart[$itemId] = [
@@ -104,7 +104,7 @@ class CartController extends Controller
         return response()->json([
             "success" => true,
             "cartData" => $cart,
-            "message" => "Cập nhật thành công"
+            "message" => "Update successfully"
         ]);
     }
 
@@ -116,7 +116,7 @@ class CartController extends Controller
         $size   = $request->size;
 
         if (!$itemId || !$size) {
-            return response()->json(["success" => false, "message" => "Thiếu dữ liệu"], 400);
+            return response()->json(["success" => false, "message" => "Missing data"], 400);
         }
 
         $user = User::find($userId);
@@ -133,7 +133,7 @@ class CartController extends Controller
         return response()->json([
             "success" => true,
             "cartData" => $cart,
-            "message" => "Đã xóa khỏi giỏ"
+            "message" => "Deleted successfully"
         ]);
     }
 
@@ -146,7 +146,7 @@ class CartController extends Controller
         return response()->json([
             "success" => true,
             "cartData" => $user->cartData ?? [],
-            "message" => "Lấy giỏ hàng thành công"
+            "message" => "Get cart successfully"
         ]);
     }
 }

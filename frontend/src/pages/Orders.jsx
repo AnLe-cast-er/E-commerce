@@ -38,7 +38,9 @@ const Orders = () => {
 
         // Fetch orders
         console.log('Fetching user orders...');
-        const ordersResponse = await axios.post(`${backendUrl}/api/order/userorders`, {}, {
+        
+        // FIX CÚ PHÁP AXIOS: Đảm bảo headers là tham số thứ hai (config) của GET
+        const ordersResponse = await axios.get(`${backendUrl}/api/order/userorders`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -69,8 +71,14 @@ const Orders = () => {
           toast.error(ordersResponse.data.message || 'Lỗi khi tải đơn hàng');
         }
       } catch (error) {
+        // Lỗi 401 Unauthorized sẽ rơi vào đây
         console.error('Lỗi khi tải đơn hàng:', error);
-        toast.error('Có lỗi xảy ra khi tải đơn hàng');
+        if (error.response && error.response.status === 401) {
+            toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+            navigate('/login');
+        } else {
+            toast.error('Có lỗi xảy ra khi tải đơn hàng');
+        }
       } finally {
         setLoading(false);
       }
