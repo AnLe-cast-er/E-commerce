@@ -58,7 +58,7 @@ const CartTotal = () => {
         
         {subtotal > 0 && subtotal < 100 && (
           <div className="pt-2 text-sm text-green-600">
-            <p>Free shipping on orders over {currency}$100.000</p>
+            <p>Free shipping on orders over {currency}100.000</p>
           </div>
         )}
       </div>

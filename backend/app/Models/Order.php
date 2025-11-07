@@ -3,14 +3,16 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use MongoDB\Laravel\Eloquent\Model;
 
 class Order extends Model
 {
     use HasFactory;
+    
+    protected $connection = 'mongodb';
 
     protected $fillable = [
-        'userId',
+        'user_id', 
         'items',
         'address',
         'amount',
@@ -30,6 +32,7 @@ class Order extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class, 'userId');
+        // Vẫn dùng User::class sau khi đã fix
+        return $this->belongsTo(User::class, 'user_id'); 
     }
 }
