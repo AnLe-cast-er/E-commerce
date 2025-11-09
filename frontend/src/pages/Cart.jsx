@@ -75,14 +75,20 @@ const Cart = () => {
             >
               <div className="flex items-start gap-4 w-full sm:w-2/3">
                 <img
-                  src={buildSrc(item.product?.image, backendUrl) || assets.logo}
+                  src={
+                    item.product?.image?.[0]
+                      ? buildSrc(item.product.image[0], backendUrl)
+                      : assets.logo
+                  }
                   alt={item.product?.name || 'Product'}
                   className="w-[80px] h-[120px] object-cover rounded-md shadow"
                   onError={(e) => {
-                    e.target.onerror = null;
-                    e.target.src = assets.logo;
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = assets.logo;
                   }}
                 />
+
+
 
                 <div className="flex flex-col gap-1">
                   <p className="text-lg font-medium">{item.product?.name || 'Product'}</p>
