@@ -20,7 +20,7 @@ class PlaceOrderRequest extends FormRequest
             'items.*.price' => 'required|numeric|min:0',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.size' => 'nullable|string',
-            'items.*.image' => 'nullable|string',
+            'items.*.image' => 'nullable|string|max:500',
 
             'amount' => 'required|numeric|min:1',
 

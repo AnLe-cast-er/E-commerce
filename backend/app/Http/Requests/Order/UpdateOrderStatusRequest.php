@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\Order;
 
 class UpdateOrderStatusRequest extends FormRequest
 {
@@ -14,8 +15,8 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules()
     {
         return [
-            'orderId' => 'required|integer|exists:orders,id',
-            'status' => 'required|string|in:Order Placed,Processing,Shipped,Delivered,Cancelled'
+            'orderId' => 'required|string|exists:orders,_id', 
+            'status' => 'required|string|in:' . implode(',', Order::STATUS_ENUM) 
         ];
     }
 }

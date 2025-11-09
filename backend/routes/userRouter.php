@@ -10,5 +10,7 @@ Route::prefix('user')->group(function () {
     Route::post('/login', [UserController::class, 'loginUser']);
     Route::post('/admin', [UserController::class, 'adminLogin']);
     
-    Route::middleware('jwt.auth')->get('/profile', [UserController::class, 'getUserProfile']);
+    Route::middleware('auth:sanctum')->get('/profile', [UserController::class, 'getUserProfile']);
+
+
 });
