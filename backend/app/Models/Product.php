@@ -3,19 +3,19 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use MongoDB\Laravel\Eloquent\Model; 
+use MongoDB\Laravel\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
 
-    protected $collection = 'products'; 
-    protected $connection = 'mongodb';  
+    protected $collection = 'products';
+    protected $connection = 'mongodb';
 
     protected $fillable = [
-        'name', 
-        'description', 
-        'price', 
+        'name',
+        'description',
+        'price',
         'image',
         'category',
         'subCategory',
@@ -24,8 +24,8 @@ class Product extends Model
         'date'
     ];
 
-    protected $casts = [
+    protected $casts = [       
         'bestseller' => 'boolean',
-        'date' => 'integer',
+        'date' => 'integer',     
     ];
 }

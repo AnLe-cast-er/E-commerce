@@ -5,31 +5,34 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Http\Request; // Phải có import Request
+use Illuminate\Http\Request;
 use App\Http\Requests\Order\PlaceOrderRequest;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
+use Illuminate\Support\Facades\Log;
+
 
 class OrderController extends Controller
 {
+   
+    // OrderController.php (Hàm placeOrder)
+
     public function placeOrder(PlaceOrderRequest $request)
     {
         $validated = $request->validated();
         $method = strtoupper($validated['method'] ?? 'COD');
 
-        // KHẮC PHỤC LỖI: Lấy đối tượng user đang được xác thực một cách chính xác
         $authenticatedUser = $request->user(); 
 
-        // Kiểm tra an toàn (Mặc dù middleware đã xử lý, nhưng nên kiểm tra để tránh lỗi 500)
         if (!$authenticatedUser) {
             return response()->json(["success" => false, "message" => "Unauthenticated"], 401);
         }
 
         $orderData = [
-            // SỬA LỖI: Thay thế $request->user->id bằng $authenticatedUser->id
-            "user_id" => $authenticatedUser->id,
+            "userId" => $authenticatedUser->id, 
+            
             "items" => array_map(function ($item) {
                 return [
-                    "product_id" => $item["productId"],
+                    "productId" => $item["productId"], 
                     "name" => $item["name"],
                     "price" => $item["price"],
                     "size" => $item["size"] ?? "",
@@ -37,20 +40,23 @@ class OrderController extends Controller
                     "image" => $item["image"] ?? ""
                 ];
             }, $validated['items']),
+            
             "address" => $validated['address'],
             "amount" => $validated['amount'],
-            "payment_method" => $method,
+            
+            "paymentMethod" => $method, 
+            
             "payment" => $method === "COD",
-            "status" => $method === "VNPAY" ? "Pending Payment" : "Order Placed",
+
+            "status" => $method === "VNPAY" ? \App\Models\Order::STATUS_ENUM[1] : \App\Models\Order::STATUS_ENUM[0], 
+            
             "date" => Carbon::now()
         ];
 
-        $order = Order::create($orderData);
+        $order = \App\Models\Order::create($orderData); 
 
         if ($method === "COD") {
-            // SỬA LỖI: Thay thế $request->user->id bằng $authenticatedUser->id
-            // Giả định 'id' trong User Model tương đương với _id của MongoDB
-            User::where("id", $authenticatedUser->id)->update(["cartData" => []]); 
+            $authenticatedUser->update(["cartData" => []]); 
         }
 
         return response()->json([
@@ -63,8 +69,9 @@ class OrderController extends Controller
     public function updateStatus(UpdateOrderStatusRequest $request)
     {
         $validated = $request->validated();
-
-        $order = Order::find($validated['orderId']);
+        
+        $order = Order::find($validated['orderId']); 
+        
         $order->status = $validated['status'];
         $order->save();
 
@@ -74,4 +81,33 @@ class OrderController extends Controller
             "order" => $order
         ]);
     }
+    public function userOrders(Request $request)
+{
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+    }
+
+    try {
+        // Truy vấn đúng field bạn đang dùng: userId
+        $orders = Order::where('userId', $user->id)
+                        ->orderBy('date', 'desc')
+                        ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders' => $orders
+        ]);
+
+    } catch (\Exception $e) {
+        \Log::error("Error fetching user orders for userId {$user->id}: " . $e->getMessage());
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Internal server error'
+        ], 500);
+    }
+}
+
 }

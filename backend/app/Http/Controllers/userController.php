@@ -6,6 +6,7 @@ use App\Http\Requests\User\RegisterUserRequest;
 use App\Http\Requests\User\LoginUserRequest;
 use App\Http\Requests\User\AdminLoginRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Firebase\JWT\JWT;
 
@@ -57,7 +58,7 @@ class UserController extends Controller
     }
 
     $token = JWT::encode(
-        ['id' => $user->_id, 'isAdmin' => true, 'exp' => time() + 86400],
+        ['id' => $user->id, 'isAdmin' => true, 'exp' => time() + 86400],
         env('JWT_SECRET'),
         'HS256'
     );
@@ -65,5 +66,20 @@ class UserController extends Controller
     return response()->json(['success' => true, 'token' => $token]);
 }
 
+public function getUserProfile(Request $request)
+{
+    // Lấy thông tin người dùng đã được xác thực
+    $user = $request->user();
+
+    if (!$user) {
+        return response()->json(['success' => false, 'message' => 'User not found or unauthenticated'], 404);
+    }
+    
+    // Trả về thông tin người dùng
+    return response()->json([
+        'success' => true,
+        'user' => $user
+    ]);
+}
     
 }

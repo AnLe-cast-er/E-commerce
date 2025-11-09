@@ -23,10 +23,12 @@ class ProductController extends Controller
         ], 201);
     }
 
-    public function updateProduct(UpdateProductRequest $request, $id): JsonResponse
+   public function updateProduct(UpdateProductRequest $request, string $id): JsonResponse
     {
         $data = $request->validated();
-        $product = Product::findOrFail($id);
+        
+        $product = Product::findOrFail($id); 
+        
         $product->update($data);
 
         return response()->json([
@@ -35,7 +37,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function singleProduct(SingleProductRequest $request, $id): JsonResponse
+    public function singleProduct(string $id): JsonResponse
     {
         $product = Product::findOrFail($id);
 
@@ -54,7 +56,7 @@ class ProductController extends Controller
     }
 
 
-    public function removeProduct(RemoveProductRequest $request, $id): JsonResponse
+    public function removeProduct(string $id): JsonResponse
     {
         $product = Product::findOrFail($id);
         $product->delete();

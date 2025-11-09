@@ -8,11 +8,12 @@ use MongoDB\Laravel\Eloquent\Model;
 class Order extends Model
 {
     use HasFactory;
-    
+
     protected $connection = 'mongodb';
+    protected $collection = 'orders'; 
 
     protected $fillable = [
-        'user_id', 
+        'userId', 
         'items',
         'address',
         'amount',
@@ -22,17 +23,17 @@ class Order extends Model
         'date'
     ];
 
-    protected $casts = [
-        'items' => 'array',    
-        'address' => 'array',   
-        'payment' => 'boolean',
-        'amount' => 'float',
-        'date' => 'datetime'
+    protected $casts = [   
+        'amount' => 'float',     
+        'payment' => 'boolean',  
+        'date' => 'datetime'     
     ];
 
     public function user()
     {
-        // Vẫn dùng User::class sau khi đã fix
-        return $this->belongsTo(User::class, 'user_id'); 
+        return $this->belongsTo(User::class, 'userId');
     }
+
+    const STATUS_ENUM = ["Order Placed", "Processing", "Shipped", "Delivered", "Cancelled"];
+    const PAYMENT_METHOD_ENUM = ["COD", "VNPAY"];
 }
