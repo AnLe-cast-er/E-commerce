@@ -5,32 +5,33 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Http\Requests\Cart\AddToCartRequest;
+use App\Http\Requests\Cart\UpdateCartRequest;
+use App\Http\Requests\Cart\RemoveCartRequest;
 
 class CartController extends Controller
 {
     // 🛒 Thêm sản phẩm vào giỏ
-    public function add(Request $request)
+    public function add(AddToCartRequest $request) // Sử dụng AddToCartRequest
     {
-        $userId = $request->user()->id;
-        $itemId = $request->itemId;
-        $size   = $request->size;
+        $user = $request->user();
+        $validated = $request->validated();
+        
+        $itemId = $validated['itemId'];
+        $size   = $validated['size'];
 
-        if (!$itemId || !$size) {
-            return response()->json(["success" => false, "message" => "Missing data"], 400);
-        }
-
+        // Validation 'exists' đảm bảo Product tồn tại, chỉ cần tìm
         $product = Product::find($itemId);
-        if (!$product) {
-            return response()->json(["success" => false, "message" => "No products found"], 404);
-        }
 
-        $user = User::find($userId);
+        // Lấy giỏ hàng an toàn
         $cart = $user->cartData ?? [];
 
+        // Khởi tạo sản phẩm trong giỏ nếu chưa tồn tại
         if (!isset($cart[$itemId])) {
             $cart[$itemId] = [
                 "product" => [
-                    "_id"   => $product->id,
+                    // Dùng $product->id (ObjectId)
+                    "_id"   => $product->id, 
                     "name"  => $product->name,
                     "price" => $product->price,
                     "image" => $product->image
@@ -39,6 +40,7 @@ class CartController extends Controller
             ];
         }
 
+        // Khởi tạo size nếu chưa tồn tại
         if (!isset($cart[$itemId]["sizes"][$size])) {
             $cart[$itemId]["sizes"][$size] = 0;
         }
@@ -55,31 +57,28 @@ class CartController extends Controller
         ]);
     }
 
-    // 🔄 Cập nhật giỏ hàng
-    public function update(Request $request)
+
+    public function update(UpdateCartRequest $request) 
     {
-        $userId   = $request->user()->id;
-        $itemId   = $request->itemId;
-        $size     = $request->size;
-        $quantity = $request->quantity;
+        $user     = $request->user();
+        $validated = $request->validated();
+        
+        $itemId   = $validated['itemId'];
+        $size     = $validated['size'];
+        $quantity = $validated['quantity'];
 
-        if (!$itemId || !$size || $quantity === null) {
-            return response()->json(["success" => false, "message" => "Missing data"], 400);
-        }
-
-        $user = User::find($userId);
         $cart = $user->cartData ?? [];
 
-        // Xóa sản phẩm nếu số lượng <= 0
+
         if ($quantity <= 0) {
             if (isset($cart[$itemId]["sizes"][$size])) {
                 unset($cart[$itemId]["sizes"][$size]);
                 if (empty($cart[$itemId]["sizes"])) unset($cart[$itemId]);
             }
         } else {
-            // Nếu chưa có sản phẩm thì tạo mới
             if (!isset($cart[$itemId])) {
                 $product = Product::find($itemId);
+                
                 if (!$product) {
                     return response()->json(["success" => false, "message" => "No products found"], 404);
                 }
@@ -108,18 +107,14 @@ class CartController extends Controller
         ]);
     }
 
-    // ❌ Xóa 1 size ra giỏ hàng
-    public function remove(Request $request)
+    public function remove(RemoveCartRequest $request) 
     {
-        $userId = $request->user()->id;
-        $itemId = $request->itemId;
-        $size   = $request->size;
+        $user = $request->user();
+        $validated = $request->validated();
+        
+        $itemId = $validated['itemId'];
+        $size   = $validated['size'];
 
-        if (!$itemId || !$size) {
-            return response()->json(["success" => false, "message" => "Missing data"], 400);
-        }
-
-        $user = User::find($userId);
         $cart = $user->cartData ?? [];
 
         if (isset($cart[$itemId]["sizes"][$size])) {
@@ -137,11 +132,9 @@ class CartController extends Controller
         ]);
     }
 
-    // 📦 Lấy giỏ hàng
     public function get(Request $request)
     {
-        $userId = $request->user()->id;
-        $user = User::find($userId);
+        $user = $request->user();
 
         return response()->json([
             "success" => true,

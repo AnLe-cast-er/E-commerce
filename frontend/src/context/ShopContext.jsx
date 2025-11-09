@@ -73,7 +73,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
     if (!token || cartLoaded.current) return;
     cartLoaded.current = true; 
 
-    console.log("🟡 [getCartData] Fetching cart with token:", token);
+
     try {
       const res = await axios.get(`${backendUrl}/api/cart/get`, {
         headers: {
@@ -84,24 +84,22 @@ const getProductsData = async (retries = 3, delay = 2000) => {
         withCredentials: true,
       });
 
-      console.log("🔵 [getCartData] Server response:", res.data);
+
 
       if (res.data.success) {
-        console.log("🟢 [getCartData] Setting cart data:", res.data.cartData);
+
         const cartData = res.data.cartData || {};
-        console.log("📦 [getCartData] Cart data to set:", JSON.stringify(cartData, null, 2));
         setCartItems(cartData);
         
-        // Log current state after setting
+
         setTimeout(() => {
-          console.log("🔄 [getCartData] Current cartItems state:", cartItems);
+
         }, 1000);
       } else {
-        console.error("🔴 [getCartData] Error from server:", res.data.message);
         toast.error(res.data.message || "Cannot load cart data");
       }
     } catch (err) {
-      console.error("🔴 Lỗi getCartData:", err.response?.data || err.message);
+
     }
   };
 
@@ -114,7 +112,6 @@ const getProductsData = async (retries = 3, delay = 2000) => {
       // Initialize with proper structure matching backend
       const product = products.find(p => p._id === itemId);
       if (!product) {
-        console.error("Product not found:", itemId);
         return toast.error("Product not found");
       }
       newCart[itemId] = {
@@ -147,7 +144,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
     }
 
     try {
-      console.log("📡 [addToCart] Sending to server...");
+
       const response = await axios.post(
         `${backendUrl}/api/cart/add`,
         { itemId, size },
