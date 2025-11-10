@@ -34,14 +34,14 @@ const Login = ({ setToken }) => {
     }
 
     try {
-      const response = await loginAdmin(email, password); // gọi API admin
+      const response = await loginAdmin(email, password); 
       console.log("🟢 Login API response:", response);
 
       if (response.success && response.token) {
         localStorage.setItem('token', response.token);
         setToken(response.token);
         toast.success('Login successful!');
-        navigate('/admin/dashboard'); // đổi sang route dashboard admin
+        navigate('/admin/dashboard'); 
       } else {
         toast.error(response.message || 'Invalid credentials');
       }

@@ -14,7 +14,7 @@ public function rules(): array
     return [
         'name' => 'required|string',
         'price' => 'required|numeric',
-        'image' => 'required|array',
+        'image' => 'required|array|min:1',
         'description' => 'nullable|string',
         'category' => 'nullable|string',
         'subCategory' => 'nullable|string',

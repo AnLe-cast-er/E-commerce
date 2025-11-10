@@ -9,6 +9,5 @@ Route::middleware(['admin.auth'])->group(function () {
     Route::post('/product/remove', [ProductController::class, 'removeProduct']);
     Route::put('/product/update/{id}', [ProductController::class, 'updateProduct']);
 });
-
 Route::get('/product/list', [ProductController::class, 'listProducts']);
 Route::get('/product/{productId}', [ProductController::class, 'singleProduct']);

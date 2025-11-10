@@ -62,16 +62,15 @@ const Add = () => {
         }
       }
 
-      // Chuẩn hóa dữ liệu gửi backend
       const productData = {
         name,
         description,
-        category_id: category,      // backend thường validate category_id
-        sub_category: subCategory,  // backend validate sub_category
-        price: parseFloat(price),   // chuyển sang number
+        category_id: category,      
+        subCategory: subCategory,  
+        price: parseFloat(price),   
         sizes,
         bestseller,
-        images: imageUrls,
+        image: imageUrls,
       };
 
       console.log("🟢 Sending product data:", productData);

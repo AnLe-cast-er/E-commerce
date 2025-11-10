@@ -7,6 +7,7 @@ use App\Http\Requests\Product\UpdateProductRequest;
 use App\Http\Requests\Product\SingleProductRequest;
 use App\Http\Requests\Product\RemoveProductRequest;
 use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
 class ProductController extends Controller
@@ -56,13 +57,22 @@ class ProductController extends Controller
     }
 
 
-    public function removeProduct(string $id): JsonResponse
-    {
-        $product = Product::findOrFail($id);
-        $product->delete();
+    public function removeProduct(Request $request): JsonResponse 
+        {
 
-        return response()->json([
-            'message' => 'Product removed successfully'
-        ]);
-    }
+            $validated = $request->validate((new RemoveProductRequest())->rules());
+
+            $productId = $validated['productId'];
+            $product = Product::find($productId);
+
+            if (!$product) {
+                return response()->json(['message' => 'Product not found'], 404);
+            }
+
+            $product->delete();
+
+            return response()->json(['message' => 'Product removed successfully']);
+        }
+
+
 }
