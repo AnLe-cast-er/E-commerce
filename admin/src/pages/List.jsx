@@ -11,15 +11,11 @@ const List = () => {
   const [loading, setLoading] = useState(true);
   const currency = '$';
 
-  // Build image source URL
   const buildSrc = (path) => {
     if (!path) return '';
     try {
-      // If it's already an absolute URL, use it as is
       if (/^https?:\/\//i.test(path)) return path;
-      // Remove any leading slashes and normalize path separators
       const normalized = path.replace(/\\\\/g, '/').replace(/^\//, '');
-      // Build full URL to backend uploads folder
       return `${backendUrl}/${normalized}`;
     } catch (err) {
       console.error('Error building image URL:', err);
@@ -27,7 +23,7 @@ const List = () => {
     }
   };
 
-  // Get authentication headers
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -41,7 +37,6 @@ const List = () => {
     };
   };
 
-  // Fetch products list
   const fetchList = async () => {
     try {
       setLoading(true);
@@ -58,7 +53,6 @@ const List = () => {
       const errorMessage = error.response?.data?.message || 'Error loading products';
       toast.error(errorMessage);
       
-      // If unauthorized, redirect to login
       if (error.response?.status === 401) {
         localStorage.removeItem('token');
         window.location.href = '/login';
@@ -72,16 +66,17 @@ const List = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        const headers = getAuthHeaders();
-        const response = await axios.post(
-          `${backendUrl}/api/product/remove`,
-          { productId: id },
+        const headers = {...getAuthHeaders(),"Content-Type": "application/json",};
+        console.log("Deleting ID:", id);
+        const response = await axios.post(`${backendUrl}/api/product/remove`, 
+          { product_id: id },
           { headers }
         );
+
         
-        if (response.data.success) {
-          toast.success('Product deleted successfully');
-          fetchList(); // Refresh the list
+        if (response.data.message) {
+          toast.success(response.data.message);
+          fetchList(); 
         } else {
           toast.error(response.data.message || 'Failed to delete product');
         }
@@ -89,7 +84,6 @@ const List = () => {
         console.error('Error deleting product:', error);
         toast.error(error.response?.data?.message || 'Error deleting product');
         
-        // If unauthorized, redirect to login
         if (error.response?.status === 401) {
           localStorage.removeItem('token');
           window.location.href = '/login';
