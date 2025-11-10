@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Exception;
+
 
 class UserController extends Controller
 {
@@ -68,18 +71,42 @@ class UserController extends Controller
 
 public function getUserProfile(Request $request)
 {
-    // Lấy thông tin người dùng đã được xác thực
-    $user = $request->user();
+    $token = $request->bearerToken();
+    $jwtSecret = env('JWT_SECRET');
 
-    if (!$user) {
-        return response()->json(['success' => false, 'message' => 'User not found or unauthenticated'], 404);
+    if (!$token || !$jwtSecret) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Token not provided or secret missing'
+        ], 401);
     }
-    
-    // Trả về thông tin người dùng
-    return response()->json([
-        'success' => true,
-        'user' => $user
-    ]);
+
+    try {
+        $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
+        $userId = $decoded->id ?? null;
+
+        if (!$userId) {
+            return response()->json(['success' => false, 'message' => 'Invalid token payload'], 401);
+        }
+
+        $user = User::find($userId);
+
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'User not found'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'user' => $user
+        ]);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid or expired token',
+            'error' => $e->getMessage()
+        ], 401);
+    }
 }
     
 }
