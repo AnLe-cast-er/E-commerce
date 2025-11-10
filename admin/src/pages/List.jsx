@@ -63,34 +63,54 @@ const List = () => {
   };
 
   // Delete product
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        const headers = {...getAuthHeaders(),"Content-Type": "application/json",};
-        console.log("Deleting ID:", id);
-        const response = await axios.post(`${backendUrl}/api/product/remove`, 
-          { product_id: id },
-          { headers }
-        );
+ const handleDelete = async (id) => {
+  console.log('🗑️ Deleting product ID:', id);
+  
+  if (window.confirm('Are you sure you want to delete this product?')) {
+    try {
+      const headers = {
+        ...getAuthHeaders(),
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      };
+      
+      console.log("Deleting ID:", id);
+      console.log("Headers:", headers);
+      
+      const response = await axios.post(
+        `${backendUrl}/api/product/remove`, 
+        { productId: id }, 
+        { headers }
+      );
 
-        
-        if (response.data.message) {
-          toast.success(response.data.message);
-          fetchList(); 
-        } else {
-          toast.error(response.data.message || 'Failed to delete product');
-        }
-      } catch (error) {
-        console.error('Error deleting product:', error);
+      console.log("Delete response:", response.data);
+
+      // ✅ Fix logic check success
+      if (response.data.success || response.data.message) {
+        toast.success(response.data.message || 'Product deleted successfully');
+        await fetchList();
+      } else {
+        toast.error(response.data.message || 'Failed to delete product');
+      }
+    } catch (error) {
+      console.error('❌ Error deleting product:', error);
+      console.error('Error response:', error.response?.data);
+      
+      if (error.response?.status === 401) {
+        toast.error('Unauthorized. Please login again');
+        localStorage.removeItem('token');
+        window.location.href = '/login';
+      } else if (error.response?.status === 422) {
+        // Laravel validation error
+        const errors = error.response.data.errors;
+        const errorMsg = errors ? Object.values(errors).flat().join(', ') : 'Invalid data';
+        toast.error(errorMsg);
+      } else {
         toast.error(error.response?.data?.message || 'Error deleting product');
-        
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          window.location.href = '/login';
-        }
       }
     }
-  };
+  }
+};
 
   // Load products on component mount
   useEffect(() => {
@@ -123,7 +143,8 @@ const List = () => {
           </thead>
           <tbody className='bg-white divide-y divide-gray-200'>
             {list.map((product) => (
-              <tr key={product._id}>
+              
+              <tr key={product.id}>
                 <td className='px-6 py-4 whitespace-nowrap'>
                   <div className='flex items-center'>
                     <div className='flex-shrink-0 h-10 w-10'>
@@ -156,7 +177,7 @@ const List = () => {
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>{product.subCategory}</td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
                   <button
-                    onClick={() => handleDelete(product._id)}
+                    onClick={() => handleDelete(product.id)}
                     className='text-red-600 hover:text-red-900'
                   >
                     Delete

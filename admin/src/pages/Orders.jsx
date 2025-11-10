@@ -12,11 +12,9 @@ const Orders = ({ token }) => {
   // 🔹 Fetch orders từ backend
   const fetchOrders = async () => {
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/order/list`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await axios.post(`${backendUrl}/api/order/all`, {}, {
+  headers: { Authorization: `Bearer ${token}` }
+});
 
       if (response.data.success) {
         setOrders(response.data.orders || []);
@@ -41,7 +39,7 @@ const Orders = ({ token }) => {
       if (response.data.success) {
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
-            order._id === orderId ? { ...order, status: newStatus } : order
+            order.id === orderId ? { ...order, status: newStatus } : order
           )
         );
         toast.success("Order status updated successfully");
@@ -65,7 +63,7 @@ const Orders = ({ token }) => {
         {orders.length > 0 ? (
           orders.map((order, index) => (
             <div
-              key={order._id || index}
+              key={order.id || index}
               className="border p-4 rounded-lg shadow bg-white"
             >
               {/* --- Header --- */}
@@ -127,7 +125,7 @@ const Orders = ({ token }) => {
                   className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   value={order.status || "Order Placed"}
                   onChange={(e) =>
-                    handleStatusChange(order._id, e.target.value)
+                    handleStatusChange(order.id, e.target.value)
                   }
                 >
                   <option value="Order Placed">Order Placed</option>

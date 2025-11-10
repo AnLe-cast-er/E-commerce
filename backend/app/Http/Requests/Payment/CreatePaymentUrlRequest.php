@@ -14,13 +14,12 @@ class CreatePaymentUrlRequest extends FormRequest
     public function rules(): array
     {
         return [
-            // CHỈNH SỬA: Thêm 'string' và đổi cột kiểm tra từ 'id' sang '_id'
             'orderId' => 'required|string|exists:orders,_id', 
             'bankCode' => 'nullable|string'
         ];
     }
 
-    // Messages giữ nguyên (chính xác)
+
     public function messages(): array
     {
         return [

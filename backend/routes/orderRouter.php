@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderController; 
 
 Route::middleware(['admin.auth'])->prefix('order')->group(function () {
-    Route::get('/list', [OrderController::class, 'allOrders']);
+    Route::post('/all', [OrderController::class, 'allOrders']);
     Route::patch('/status', [OrderController::class, 'updateStatus']);
 });
 

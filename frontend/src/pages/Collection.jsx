@@ -10,13 +10,23 @@ const Collection = () => {
   const [sortBy, setSortBy] = useState("Relevant");
   const [loading, setLoading] = useState(true);
 
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 6;
+
   // ✅ Khi products load xong từ context
   useEffect(() => {
-    if (products.length > 0) {
-      setLoading(false);
-      applyFilters(products);
-    }
-  }, [products]);
+  if (products.length > 0) {
+    setLoading(false);
+    const normalizedProducts = products.map(p => ({
+      ...p,
+      subCategory: p.subCategory || p.SubCategory || p.subcategory || "",
+      category: p.category || p.Category || p.categoryName || "",
+    }));
+
+    applyFilters(normalizedProducts);
+  }
+}, [products]);
 
   // ✅ Toggle category
   const toggleCategory = (e) => {
@@ -51,18 +61,23 @@ const Collection = () => {
     }
 
     if (category.length > 0) {
-      filtered = filtered.filter((item) => category.includes(item.category));
+      filtered = filtered.filter((item) =>
+        category.some(
+          (cat) => cat.toLowerCase() === (item.category || "").toLowerCase()
+        )
+      );
     }
 
     if (subCategory.length > 0) {
       filtered = filtered.filter((item) =>
-        subCategory.includes(item.subCategory)
+        subCategory.some(
+          (sub) => sub.toLowerCase() === (item.subCategory || "").toLowerCase()
+        )
       );
     }
 
     // Sau khi lọc xong thì sắp xếp
     filtered = sortProducts(filtered);
-
     setFilteredProducts(filtered);
   };
 
@@ -79,6 +94,7 @@ const Collection = () => {
 
   // ✅ Khi filter hoặc search thay đổi → áp lại filter
   useEffect(() => {
+    setCurrentPage(1); // reset về trang đầu
     applyFilters();
   }, [category, subCategory, search, showSearch, sortBy]);
 
@@ -90,6 +106,12 @@ const Collection = () => {
       </div>
     );
   }
+
+  // Pagination logic
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   return (
     <div className="flex gap-8 px-8 py-10">
@@ -152,24 +174,96 @@ const Collection = () => {
           </select>
         </div>
 
+        {/* Product grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-items-center">
-  {filteredProducts.length === 0 ? (
-    <p className="text-gray-500 text-center col-span-full">
-      No products found.
-    </p>
-  ) : (
-    filteredProducts.map((item, index) => (
-      <ProductItem
-        key={item._id || item.id || index}
-        productId={item._id || item.id}
-        name={item.name || 'Unnamed product'}
-        image={item.image || []}
-        price={item.price || 0}
-      />
-    ))
-  )}
-</div>
+          {currentProducts.length === 0 ? (
+            <p className="text-gray-500 text-center col-span-full">
+              No products found.
+            </p>
+          ) : (
+            currentProducts.map((item, index) => (
+              <ProductItem
+                key={item._id || item.id || index}
+                productId={item._id || item.id}
+                name={item.name || "Unnamed product"}
+                image={item.image || []}
+                price={item.price || 0}
+              />
+            ))
+          )}
+        </div>
 
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-3 mt-8">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === 1
+                  ? "text-gray-400 border-gray-300"
+                  : "text-gray-700 border-gray-400 hover:bg-gray-100"
+              }`}
+            >
+              Prev
+            </button>
+
+            {/* Smart Pagination */}
+              {(() => {
+                const pageButtons = [];
+                const showPages = 2; // số trang liền kề muốn hiển thị (mỗi bên)
+
+                // Tạo mảng các trang nên hiển thị
+                for (let i = 1; i <= totalPages; i++) {
+                  if (
+                    i === 1 ||
+                    i === totalPages ||
+                    (i >= currentPage - showPages && i <= currentPage + showPages)
+                  ) {
+                    pageButtons.push(i);
+                  } else if (
+                    (i === currentPage - showPages - 1 && i > 1) ||
+                    (i === currentPage + showPages + 1 && i < totalPages)
+                  ) {
+                    pageButtons.push("ellipsis-" + i); // ký hiệu "..."
+                  }
+                }
+
+                return pageButtons.map((page, idx) =>
+                  typeof page === "string" ? (
+                    <span key={idx} className="px-2 text-gray-400">
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded-md border ${
+                        currentPage === page
+                          ? "bg-gray-800 text-white border-gray-800"
+                          : "border-gray-400 text-gray-700 hover:bg-gray-100"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  )
+                );
+              })()}
+
+
+            <button
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === totalPages
+                  ? "text-gray-400 border-gray-300"
+                  : "text-gray-700 border-gray-400 hover:bg-gray-100"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
