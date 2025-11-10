@@ -112,9 +112,9 @@ class OrderController extends Controller
     public function allOrders(Request $request)
     {
         try {
-            // Admin cần xem tất cả đơn hàng
+            Log::info('Accessing allOrders endpoint');
             $orders = Order::orderBy('date', 'desc')->get();
-
+            Log::info('Orders fetched: ' . count($orders));
             return response()->json([
                 'success' => true,
                 'orders' => $orders
