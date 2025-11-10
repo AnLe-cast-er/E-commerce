@@ -57,22 +57,20 @@ class ProductController extends Controller
     }
 
 
-    public function removeProduct(Request $request): JsonResponse 
-        {
-
-            $validated = $request->validate((new RemoveProductRequest())->rules());
-
-            $productId = $validated['productId'];
-            $product = Product::find($productId);
-
-            if (!$product) {
-                return response()->json(['message' => 'Product not found'], 404);
-            }
-
-            $product->delete();
-
-            return response()->json(['message' => 'Product removed successfully']);
+    public function removeProduct(RemoveProductRequest $request): JsonResponse 
+    {
+        $validated = $request->validated();
+        $productId = $validated['productId'];
+        
+        $product = Product::find($productId);
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
         }
+
+        $product->delete();
+
+        return response()->json(['message' => 'Product removed successfully']);
+    }
 
 
 }

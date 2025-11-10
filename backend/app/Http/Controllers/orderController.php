@@ -82,32 +82,51 @@ class OrderController extends Controller
         ]);
     }
     public function userOrders(Request $request)
-{
-    $user = $request->user();
+    {
+        $user = $request->user();
 
-    if (!$user) {
-        return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+        }
+
+        try {
+            // Truy vấn đúng field bạn đang dùng: userId
+            $orders = Order::where('userId', $user->id)
+                            ->orderBy('date', 'desc')
+                            ->get();
+
+            return response()->json([
+                'success' => true,
+                'orders' => $orders
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal server error'
+            ], 500);
+        }
     }
 
-    try {
-        // Truy vấn đúng field bạn đang dùng: userId
-        $orders = Order::where('userId', $user->id)
-                        ->orderBy('date', 'desc')
-                        ->get();
 
-        return response()->json([
-            'success' => true,
-            'orders' => $orders
-        ]);
+    public function allOrders(Request $request)
+    {
+        try {
+            // Admin cần xem tất cả đơn hàng
+            $orders = Order::orderBy('date', 'desc')->get();
 
-    } catch (\Exception $e) {
-        \Log::error("Error fetching user orders for userId {$user->id}: " . $e->getMessage());
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Internal server error'
-        ], 500);
+            return response()->json([
+                'success' => true,
+                'orders' => $orders
+            ]);
+
+        } catch (\Exception $e) {
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Internal server error fetching all orders'
+            ], 500);
+        }
     }
-}
 
 }
