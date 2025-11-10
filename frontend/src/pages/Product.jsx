@@ -9,6 +9,7 @@ const Product = () => {
   const [image, setImage] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
+  const [quantity, setQuantity] = useState(1); // ✅ Thêm state cho số lượng
 
   // ✅ Chuẩn hóa đường dẫn ảnh
   const buildSrc = (path) => {
@@ -33,6 +34,10 @@ const Product = () => {
       }
     }
   }, [products, productId]);
+
+  // ✅ Hàm tăng/giảm số lượng
+  const increaseQuantity = () => setQuantity((prev) => prev + 1);
+  const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
   if (!productData) {
     return (
@@ -78,6 +83,15 @@ const Product = () => {
         <div className="flex flex-col max-w-lg flex-1">
           <h1 className="text-3xl font-semibold mb-4">{productData.name}</h1>
 
+          {/* ✅ Hiển thị Subcategory */}
+          {productData.subCategory && (
+            <div className="mb-4">
+              <span className="inline-block bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                {productData.subCategory}
+              </span>
+            </div>
+          )}
+
           {productData.description && (
             <div className="mb-6">
               <h3 className="text-lg font-medium mb-2">Product Description</h3>
@@ -92,38 +106,59 @@ const Product = () => {
 
           {/* Sizes */}
           {Array.isArray(productData.sizes) && productData.sizes.length > 0 && (
-  <div className="flex flex-col gap-4 my-8">
-    <p>Select Size</p>
-    <div className="flex gap-2 flex-wrap">
-      {[...productData.sizes]
-        .sort((a, b) => {
-          const order = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
-          const ai = order.indexOf(a);
-          const bi = order.indexOf(b);
-          if (ai === -1 && bi === -1) return a.localeCompare(b); // nếu không nằm trong danh sách chuẩn
-          if (ai === -1) return 1;
-          if (bi === -1) return -1;
-          return ai - bi;
-        })
-        .map((item, index) => (
-          <button
-            key={index}
-            onClick={() =>
-              setSelectedSize((prev) => (prev === item ? "" : item))
-            }
-            className={`min-w-[50px] py-2 px-4 rounded-md font-medium transition-all duration-200 ${
-              selectedSize === item
-                ? "bg-orange-500 text-white shadow-md scale-105"
-                : "bg-white border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700"
-            }`}
-          >
-            {item}
-          </button>
-        ))}
-    </div>
-  </div>
-)}
+            <div className="flex flex-col gap-4 my-8">
+              <p className="font-medium">Select Size</p>
+              <div className="flex gap-2 flex-wrap">
+                {[...productData.sizes]
+                  .sort((a, b) => {
+                    const order = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+                    const ai = order.indexOf(a);
+                    const bi = order.indexOf(b);
+                    if (ai === -1 && bi === -1) return a.localeCompare(b);
+                    if (ai === -1) return 1;
+                    if (bi === -1) return -1;
+                    return ai - bi;
+                  })
+                  .map((item, index) => (
+                    <button
+                      key={index}
+                      onClick={() =>
+                        setSelectedSize((prev) => (prev === item ? "" : item))
+                      }
+                      className={`min-w-[50px] py-2 px-4 rounded-md font-medium transition-all duration-200 ${
+                        selectedSize === item
+                          ? "bg-orange-500 text-white shadow-md scale-105"
+                          : "bg-white border-2 border-gray-200 hover:border-orange-300 hover:bg-orange-50 text-gray-700"
+                      }`}
+                    >
+                      {item}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
 
+          {/* ✅ Quantity Selector */}
+          <div className="flex flex-col gap-4 my-6">
+            <p className="font-medium">Quantity</p>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={decreaseQuantity}
+                className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-lg transition-colors"
+              >
+                −
+              </button>
+              <span className="text-xl font-semibold min-w-[40px] text-center">
+                {quantity}
+              </span>
+              <button
+                onClick={increaseQuantity}
+                className="w-10 h-10 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-md font-bold text-lg transition-colors"
+              >
+                +
+              </button>
+            </div>
+          </div>
 
           {/* Add to cart */}
           <button
@@ -132,9 +167,12 @@ const Product = () => {
                 alert("Vui lòng chọn kích thước trước khi thêm vào giỏ hàng!");
                 return;
               }
-              addToCart(productData._id, selectedSize);
+              // ✅ Thêm số lượng vào giỏ hàng
+              for (let i = 0; i < quantity; i++) {
+                addToCart(productData._id, selectedSize);
+              }
             }}
-            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-300"
+            className="bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 transition-colors duration-300 font-medium"
           >
             Add to Cart
           </button>

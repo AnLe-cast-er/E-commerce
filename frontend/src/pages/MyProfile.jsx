@@ -21,9 +21,23 @@ const MyProfile = () => {
     const fetchProfile = async () => {
       try {
         const token = localStorage.getItem("token");
+        
+        console.log("🔐 Fetching profile with token:", !!token);
+        
+        if (!token) {
+          toast.error("Please login first");
+          // navigate('/login'); // Nếu có navigate
+          return;
+        }
+
         const { data } = await axios.get(`${backendUrl}/api/user/profile`, {
-          headers: { token },
+          headers: { 
+            Authorization: `Bearer ${token}`, // ✅ Đổi từ { token } thành Bearer format
+            Accept: "application/json" // ✅ Thêm Accept header
+          },
         });
+
+        console.log("✅ Profile data:", data);
 
         if (data.success) {
           setUser(data.user);
@@ -36,8 +50,16 @@ const MyProfile = () => {
           });
         }
       } catch (error) {
-        toast.error("Failed to load profile data");
-        console.error("Error fetching profile:", error);
+        console.error("❌ Error fetching profile:", error);
+        console.error("Error response:", error.response?.data);
+        
+        if (error.response?.status === 401) {
+          toast.error("Session expired. Please login again");
+          localStorage.removeItem("token");
+          // navigate('/login'); // Redirect về login
+        } else {
+          toast.error("Failed to load profile data");
+        }
       } finally {
         setLoading(false);
       }
@@ -63,6 +85,12 @@ const MyProfile = () => {
 
     try {
       const token = localStorage.getItem("token");
+      
+      if (!token) {
+        toast.error("Please login first");
+        return;
+      }
+
       const { data } = await axios.put(
         `${backendUrl}/api/user/profile`,
         {
@@ -72,17 +100,45 @@ const MyProfile = () => {
           newPassword: formData.newPassword,
         },
         {
-          headers: { token },
+          headers: { 
+            Authorization: `Bearer ${token}`, // ✅ Đổi từ { token } thành Bearer format
+            Accept: "application/json", // ✅ Thêm Accept header
+            "Content-Type": "application/json"
+          },
         }
       );
+
+      console.log("✅ Update response:", data);
 
       if (data.success) {
         setUser(data.user);
         setIsEditing(false);
+        setFormData({
+          ...formData,
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
         toast.success("Profile updated successfully!");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      console.error("❌ Error updating profile:", error);
+      console.error("Error response:", error.response?.data);
+      
+      if (error.response?.status === 401) {
+        toast.error("Session expired. Please login again");
+        localStorage.removeItem("token");
+      } else if (error.response?.status === 422) {
+
+        const errors = error.response.data.errors;
+        if (errors) {
+          Object.values(errors).flat().forEach(err => toast.error(err));
+        } else {
+          toast.error(error.response.data.message || "Validation failed");
+        }
+      } else {
+        toast.error(error.response?.data?.message || "Failed to update profile");
+      }
     }
   };
 
