@@ -32,8 +32,8 @@ const MyProfile = () => {
 
         const { data } = await axios.get(`${backendUrl}/api/user/profile`, {
           headers: { 
-            Authorization: `Bearer ${token}`, // ✅ Đổi từ { token } thành Bearer format
-            Accept: "application/json" // ✅ Thêm Accept header
+            Authorization: `Bearer ${token}`, 
+            Accept: "application/json" 
           },
         });
 

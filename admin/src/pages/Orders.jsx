@@ -6,55 +6,71 @@ import { assets } from "../assets/assets";
 const backendUrl = import.meta.env.VITE_BACKEND_URL
 const currency = import.meta.env.VITE_CURRENCY || "$"
 
-const Orders = ({ token }) => {
+const Orders = () => {
   const [orders, setOrders] = useState([]);
+  const token = localStorage.getItem("token"); // lấy token admin
+  console.log("Admin token:", token);
 
-  // 🔹 Fetch orders từ backend
   const fetchOrders = async () => {
+    if (!token) return console.error("No admin token found");
+
     try {
-      const response = await axios.post(`${backendUrl}/api/order/all`, {}, {
-  headers: { Authorization: `Bearer ${token}` }
-});
+      const response = await axios.post(
+        `${backendUrl}/api/order/all`,
+        null,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (response.data.success) {
-        setOrders(response.data.orders || []);
+        
+        const safeOrders = (response.data.orders || []).map((order) => ({
+          ...order,
+          items: Array.isArray(order.items) ? order.items : [],
+          address: order.address || {},
+        }));
+        setOrders(safeOrders);
       } else {
-        toast.error(response.data.message || "Failed to load order list");
+        toast.error(response.data.message || "Failed to load orders");
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
       toast.error(error.response?.data?.message || "Error loading order list");
     }
   };
-
-  // 🔹 Cập nhật trạng thái đơn hàng
-  const handleStatusChange = async (orderId, newStatus) => {
+const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const response = await axios.post(
-        `${backendUrl}/api/order/status`,
-        { orderId, status: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        setOrders((prevOrders) =>
-          prevOrders.map((order) =>
-            order.id === orderId ? { ...order, status: newStatus } : order
-          )
+        const response = await axios.patch( 
+            `${backendUrl}/api/order/status`,
+            { 
+                orderId, 
+                status: newStatus 
+            },
+            { 
+                headers: { Authorization: `Bearer ${token}` } 
+            }
         );
-        toast.success("Order status updated successfully");
-      } else {
-        toast.error(response.data.message || "Update failed");
-      }
-    } catch (error) {
-      console.error("Error updating order status:", error);
-      toast.error(error.response?.data?.message || "An error occurred while updating");
-    }
-  };
 
+        if (response.data.success) {
+            setOrders((prevOrders) =>
+                prevOrders.map((order) =>
+                    order.id === orderId ? { ...order, status: newStatus } : order
+                )
+            );
+            toast.success("Order status updated successfully");
+        } else {
+            toast.error(response.data.message || "Update failed");
+        }
+    } catch (error) {
+        console.error("Error updating order status:", error);
+        toast.error(error.response?.data?.message || "An error occurred while updating");
+    }
+};
   useEffect(() => {
-    if (token) fetchOrders();
-  }, [token]);
+    fetchOrders();
+  }, []);
+
 
   return (
     <div className="p-6">
