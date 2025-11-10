@@ -104,67 +104,66 @@ const getProductsData = async (retries = 3, delay = 2000) => {
   };
 
 
-  const addToCart = async (itemId, size) => {
-    if (!size) return toast.error("Please select a size before adding to cart");
+  const addToCart = async (itemId, size, quantity = 1) => {
+  if (!size) return toast.error("Please select a size before adding to cart");
 
-    const newCart = { ...cartItems };
-    if (!newCart[itemId]) {
-      // Initialize with proper structure matching backend
-      const product = products.find(p => p._id === itemId);
-      if (!product) {
-        return toast.error("Product not found");
-      }
-      newCart[itemId] = {
-        product: {
-          _id: product._id,
-          name: product.name,
-          price: product.price,
-          image: product.image?.[0] || ''
+  const qty = Math.max(1, Number(quantity) || 1); // đảm bảo là số dương
+
+  const newCart = { ...cartItems };
+  const product = products.find(p => p._id === itemId);
+  if (!product) {
+    return toast.error("Product not found");
+  }
+
+  // Nếu sản phẩm chưa có trong giỏ
+  if (!newCart[itemId]) {
+    newCart[itemId] = {
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        image: product.image?.[0] || "",
+      },
+      sizes: {},
+    };
+  }
+
+  // Đảm bảo sizes tồn tại
+  if (!newCart[itemId].sizes) {
+    newCart[itemId].sizes = {};
+  }
+
+  // ✅ Cập nhật số lượng cho size cụ thể
+  const currentQty = newCart[itemId].sizes[size] || 0;
+  newCart[itemId].sizes[size] = currentQty + qty;
+
+  setCartItems(newCart);
+  toast.success(`Added ${qty} item${qty > 1 ? "s" : ""} to cart!`);
+
+  if (!token) {
+    return toast.error("Please log in to save cart to your account");
+  }
+
+  try {
+    const response = await axios.post(
+      `${backendUrl}/api/cart/add`,
+      { itemId, size, quantity: qty }, // ✅ gửi thêm quantity
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          token,
         },
-        sizes: {}
-      };
-    }
-    
-    // Ensure sizes object exists
-    if (!newCart[itemId].sizes) {
-      newCart[itemId].sizes = {};
-    }
-    
-    // Update quantity for specific size
-    const currentQty = newCart[itemId].sizes[size] || 0;
-    newCart[itemId].sizes[size] = currentQty + 1;
-    
-    setCartItems(newCart);
+        withCredentials: true,
+      }
+    );
 
-    // Show success message
-    toast.success("Added to cart!");
+    await getCartData(); // đồng bộ lại giỏ hàng
+  } catch (error) {
+    console.error("Error addToCart:", error.response?.data || error);
+  }
+};
 
-    if (!token) {
-      return toast.error("Please log in to save cart to your account");
-    }
-
-    try {
-
-      const response = await axios.post(
-        `${backendUrl}/api/cart/add`,
-        { itemId, size },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-            token,
-          },
-          withCredentials: true,
-        }
-      );
-      
-      
-      // Force refresh cart data from server
-      await getCartData();
-    } catch (error) {
-      console.error("Error addToCart:", error.response?.data || error);
-    }
-  };
 
 
   const getCartAmount = () => {
