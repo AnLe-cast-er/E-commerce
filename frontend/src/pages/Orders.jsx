@@ -6,6 +6,22 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { assets } from '../assets/assets';
 
+// **********************************************
+// HÀM TIỆN ÍCH: Nối đường dẫn Backend và Ảnh
+// **********************************************
+const buildSrc = (path, baseUrl) => {
+  if (!path) return '';
+  // Nếu đường dẫn đã là URL đầy đủ, trả về luôn
+  if (path.startsWith('http://') || path.startsWith('https://')) {
+    return path;
+  }
+  // Loại bỏ dấu '/' ở cuối baseUrl và đầu path (nếu có)
+  const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
+  const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
+  
+  return `${normalizedBaseUrl}/${normalizedPath}`;
+};
+
 const Orders = () => {
   const { backendUrl, currency, products } = useContext(ShopContext);
   const [orders, setOrders] = useState([]);
@@ -13,41 +29,40 @@ const Orders = () => {
   const [productImages, setProductImages] = useState({});
   const navigate = useNavigate();
 
+  // Giả định Phí giao hàng cố định, PHẢI KHỚP VỚI LOGIC THANH TOÁN
+  const DELIVERY_FEE = 10; 
+
   // Check if coming back from payment
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('vnp_ResponseCode') === '00') {
-      toast.success('Payment successful!');
+      toast.success('Thanh toán thành công!');
       // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get('vnp_ResponseCode')) {
-      toast.error('Payment failed. Please try again.');
+      toast.error('Thanh toán thất bại. Vui lòng thử lại.');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
 
+  // Fetch orders and build image map
   useEffect(() => {
     const fetchOrdersAndImages = async () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          toast.error('Please log in to view your orders');
+          toast.error('Vui lòng đăng nhập để xem đơn hàng');
           navigate('/login');
           return;
         }
 
         // Fetch orders
-        console.log('Fetching user orders...');
-        
-        // FIX CÚ PHÁP AXIOS: Đảm bảo headers là tham số thứ hai (config) của GET
         const ordersResponse = await axios.get(`${backendUrl}/api/order/userorders`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
         });
-
-        console.log('Orders API Response:', ordersResponse.data);
 
         if (ordersResponse.data.success) {
           const ordersData = Array.isArray(ordersResponse.data.orders) ? ordersResponse.data.orders : [];
@@ -57,13 +72,12 @@ const Orders = () => {
             const imagesMap = {};
             if (Array.isArray(products)) {
               products.forEach(p => {
-                // product.image is saved as an array of paths in backend
                 imagesMap[p._id] = p.image || [];
               });
             }
             setProductImages(imagesMap);
           } catch (err) {
-            console.error('Error building productImages from context products:', err);
+            console.error('Lỗi khi xây dựng productImages:', err);
           }
 
           setOrders(ordersData);
@@ -85,7 +99,7 @@ const Orders = () => {
     };
 
     fetchOrdersAndImages();
-  }, [backendUrl, navigate]);
+  }, [backendUrl, navigate, products]);
 
   // Handle retry payment for VNPay
   const handlePayment = async (orderId, amount) => {
@@ -97,7 +111,7 @@ const Orders = () => {
         return;
       }
 
-      // Try new endpoint name first, then fallback to existing
+      // Logic gọi API VNPAY (giữ nguyên)
       const endpoints = [
         `${backendUrl}/api/payment/create-vnpay-url`,
         `${backendUrl}/api/payment/create_payment_url`
@@ -111,13 +125,11 @@ const Orders = () => {
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
           });
 
-          // support both response shapes
           if (res.data) {
             paymentUrl = res.data.paymentUrl || res.data.url || res.data.data?.url || null;
             if (paymentUrl) break;
           }
         } catch (err) {
-          // try next endpoint
           console.warn('Payment endpoint failed:', url, err?.response?.status);
         }
       }
@@ -127,31 +139,13 @@ const Orders = () => {
         return;
       }
 
-      // Save pending order info to localStorage to check after redirect
       localStorage.setItem('pendingOrder', JSON.stringify({ orderId, amount, timestamp: Date.now() }));
-
-      // Redirect user to VNPAY
       window.location.href = paymentUrl;
     } catch (error) {
       console.error('Lỗi khi thanh toán VNPAY:', error);
       toast.error('Có lỗi xảy ra khi khởi tạo thanh toán');
     }
   };
-
-  // Keep productImages in sync when products list updates in context
-  useEffect(() => {
-    try {
-      const imagesMap = {};
-      if (Array.isArray(products)) {
-        products.forEach(p => {
-          imagesMap[p._id] = p.image || [];
-        });
-      }
-      setProductImages(imagesMap);
-    } catch (err) {
-      console.error('Error syncing productImages from products:', err);
-    }
-  }, [products]);
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN').format(price || 0);
@@ -164,7 +158,6 @@ const Orders = () => {
       'Shipped': 'bg-indigo-100 text-indigo-800',
       'Delivered': 'bg-green-100 text-green-800',
       'Cancelled': 'bg-red-100 text-red-800',
-      // Fallback for old status values
       'pending': 'bg-yellow-100 text-yellow-800',
       'processing': 'bg-blue-100 text-blue-800',
       'shipped': 'bg-indigo-100 text-indigo-800',
@@ -172,7 +165,6 @@ const Orders = () => {
       'cancelled': 'bg-red-100 text-red-800'
     };
     
-    // Convert status to title case for display
     const displayStatus = status 
       ? status.split(' ').map(word => 
           word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
@@ -194,8 +186,6 @@ const Orders = () => {
     );
   }
 
-  console.log('Current orders state:', orders);
-
   return (
     <div className='container mx-auto px-4 py-16'>
       <div className='text-2xl mb-8'>
@@ -214,18 +204,29 @@ const Orders = () => {
         </div>
       ) : (
         <div className="space-y-6">
-          {orders.map((order) => (
-            <div key={order._id} className="border rounded-lg overflow-hidden shadow-sm">
+          {orders.map((order) => { 
+            // Tính toán Subtotal và Shipping Fee
+            const deliveryFee = order.deliveryFee || DELIVERY_FEE;
+            const subtotal = order.amount - deliveryFee;
+
+            return (
+            <div key={order.id} className="border rounded-lg overflow-hidden shadow-sm">
               <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
                 <div>
                   <span className="font-medium">Mã đơn hàng: </span>
-                  <span className="text-gray-700">{order._id}</span>
+                  <span className="text-gray-700">{order.id}</span>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div>
                     <span className="font-medium">Ngày đặt: </span>
                     <span className="text-gray-700">
-                      {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                      {new Date(order.date || order.createdAt).toLocaleDateString('vi-VN', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                      })}
                     </span>
                   </div>
                   {getStatusBadge(order.status)}
@@ -243,12 +244,12 @@ const Orders = () => {
                             <img
                               src={
                                 productImages[item.productId]?.[0]
-                                  ? productImages[item.productId][0] 
-                                  : item.product?.image?.[0]
-                                    ? item.product.image[0]
+                                  ? buildSrc(productImages[item.productId][0], backendUrl) 
+                                  : item.image 
+                                    ? buildSrc(item.image, backendUrl) 
                                     : assets.logo
                               }
-                              alt={item.product?.name || 'Product'}
+                              alt={item.name || 'Product'}
                               className="w-20 h-20 object-cover rounded"
                               onError={(e) => {
                                 e.currentTarget.onerror = null;
@@ -278,16 +279,18 @@ const Orders = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Subtotal:</span>
-                        <span>{formatPrice(order.amount - (order.deliveryFee || 0))} {currency}</span>
+                        <span>{formatPrice(subtotal)} {currency}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Shipping Fee:</span>
-                        <span>{(order.deliveryFee && order.deliveryFee > 0) ? `${formatPrice(order.deliveryFee)} ${currency}` : 'Free'}</span>
+                        <span>{formatPrice(deliveryFee)} {currency}</span>
                       </div>
+                      
                       <div className="border-t pt-2 mt-2 font-medium flex justify-between">
                         <span>Total:</span>
                         <span className="text-red-500">{formatPrice(order.amount)} {currency}</span>
                       </div>
+                      
                       <div className="pt-2 mt-2 border-t">
                         <p className="font-medium">Payment Method:</p>
                         <p className="capitalize">{order.paymentMethod.toLowerCase()}</p>
@@ -319,7 +322,7 @@ const Orders = () => {
                 </div>
               </div>
             </div>
-          ))}
+          )})} 
         </div>
       )}
     </div>

@@ -264,7 +264,7 @@ const PlaceOrder = () => {
                   
                 </div>
 
-                <div className='flex items-center p-3 border rounded-md hover:bg-gray-50'>
+                {/* <div className='flex items-center p-3 border rounded-md hover:bg-gray-50'>
                   <input
                     type='radio'
                     id='vnpay'
@@ -281,14 +281,14 @@ const PlaceOrder = () => {
                     <p className='text-xs text-gray-500 mt-1'>Pay securely through VNPAY gateway</p>
                   </div>
                   <img src={assets.vnpay_icon} alt='VNPAY' className='h-8 ml-2' />
-                </div>
+                </div> */}
               </div>
 
-              {method === 'vnpay' && (
+              {/* {method === 'vnpay' && (
                 <div className='mt-3 p-3 bg-blue-50 text-blue-700 text-sm rounded-md'>
                   <p>Bạn sẽ được chuyển đến trang thanh toán VNPAY sau khi xác nhận đơn hàng.</p>
                 </div>
-              )}
+              )} */}
 
               {method === 'cod' && (
                 <div className='mt-3 p-3 bg-gray-50 text-gray-700 text-sm rounded-md'>

@@ -41,6 +41,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
         image: item.image,
         price: item.price,
         category: item.category,
+        subCategory: item.subCategory || item.SubCategory || "",
         bestseller: item.bestseller,
         sizes: item.sizes || [],  
       }));
