@@ -1,0 +1,44 @@
+{
+  "bsonType": "object",
+  "required": ["name", "email", "password"],
+  "properties": {
+    "name": {
+      "bsonType": "string",
+      "maxLength": 255,
+      "description": "Tên người dùng, bắt buộc, tối đa 255 ký tự"
+    },
+    "email": {
+      "bsonType": "string",
+      "maxLength": 255,
+      "pattern": "^.+@.+$",
+      "description": "Email người dùng, bắt buộc, hợp lệ và tối đa 255 ký tự"
+    },
+    "password": {
+      "bsonType": "string",
+      "minLength": 8,
+      "description": "Mật khẩu người dùng, bắt buộc, tối thiểu 8 ký tự"
+    },
+    "cartData": {
+      "bsonType": "array",
+      "description": "Giỏ hàng của user, optional",
+      "items": {
+        "bsonType": "object",
+        "required": ["product_id", "quantity"],
+        "properties": {
+          "product_id": { "bsonType": "objectId" },
+          "quantity": { "bsonType": "int" }
+        }
+      }
+    },
+    "email_verified_at": {
+      "bsonType": ["date", "null"],
+      "description": "Thời gian xác thực email"
+    },
+    "remember_token": {
+      "bsonType": ["string", "null"],
+      "description": "Token ghi nhớ"
+    },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

@@ -3,14 +3,15 @@ import { assets } from "../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Add = () => {
   const [images, setImages] = useState([null, null, null, null]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Men");
-  const [subCategory, setSubCategory] = useState("Topwear");
+  const [category, setCategory] = useState("Men"); 
+  const [subCategory, setSubCategory] = useState("Topwear"); 
   const [price, setPrice] = useState("");
   const [sizes, setSizes] = useState([]);
   const [bestseller, setBestseller] = useState(false);
@@ -65,7 +66,7 @@ const Add = () => {
       const productData = {
         name,
         description,
-        category_id: category,      
+        category: category,      
         subCategory: subCategory,  
         price: parseFloat(price),   
         sizes,
@@ -73,8 +74,7 @@ const Add = () => {
         image: imageUrls,
       };
 
-      console.log("🟢 Sending product data:", productData);
-
+      // console.log("🟢 Sending product data:", productData);
       const config = {
         headers: {
           "Content-Type": "application/json",
@@ -87,26 +87,24 @@ const Add = () => {
         productData,
         config
       );
-
-      if (response.data.success) {
-        toast.success("✅ Product added successfully!");
+      toast.success("✅ Product added successfully! Form reset.");
+              
         setName("");
         setDescription("");
         setPrice("");
         setBestseller(false);
         setSizes([]);
         setImages([null, null, null, null]);
-      } else {
-        toast.error(response.data.message);
-      }
+        setCategory("Men"); 
+        setSubCategory("Topwear");
     } catch (error) {
       if (error.response) {
-        console.log("Validation errors:", error.response.data);
+        // console.log("Validation errors:", error.response.data);
         toast.error(
           "Validation error: " + JSON.stringify(error.response.data.errors)
         );
       } else {
-        console.error("Error adding product:", error);
+        // console.error("Error adding product:", error);
         toast.error("Failed to add product");
       }
     } finally {

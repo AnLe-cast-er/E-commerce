@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Title from '../components/Title';
@@ -8,6 +8,7 @@ import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 
 const PlaceOrder = () => {
+  const [loggedInUserEmail, setLoggedInUserEmail] = useState('');
   const [method, setMethod] = useState('cod');
   const [formData, setFormData] = useState({
     firstName: '',
@@ -25,7 +26,21 @@ const PlaceOrder = () => {
   
   const navigate = useNavigate();
   const { backendUrl, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
-  
+  // useEffect(() => {
+  //       const token = localStorage.getItem('token');
+  //       if (token) {
+  //           axios.get(`${backendUrl}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` }})
+  //               .then(response => {
+  //                   if (response.data.success && response.data.user?.email) {
+  //                       setLoggedInUserEmail(response.data.user.email);
+  //                       setFormData(data => ({ ...data, email: response.data.user.email }));
+  //                   }
+  //               })
+  //               .catch(err => {
+  //                   console.error('Không thể lấy thông tin user');
+  //               });
+  //       }
+  //   }, [backendUrl]);
   // Handle VNPAY payment
   const handleVnpayPayment = async (orderId, amount) => {
     try {
@@ -208,14 +223,16 @@ const PlaceOrder = () => {
             </div>
 
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
-              <input
-                type='email'
-                name='email'
-                value={formData.email}
-                onChange={onChangeHandler}
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-black focus:border-transparent'
-              />
+                <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
+                <input
+                    type='email'
+                    name='email'
+                    value={formData.email} 
+                    onChange={onChangeHandler}
+                    className='w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-black focus:border-transparent'
+                    // readOnly
+                    // disabled 
+                />
             </div>
 
             <div>

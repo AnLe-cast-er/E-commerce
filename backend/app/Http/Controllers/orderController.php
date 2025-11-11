@@ -9,12 +9,12 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Order\PlaceOrderRequest;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use Illuminate\Support\Facades\Log;
-
+use MongoDB\BSON\ObjectId;
 
 class OrderController extends Controller
 {
-   
-    // OrderController.php (Hàm placeOrder)
+
+
 
     public function placeOrder(PlaceOrderRequest $request)
     {
@@ -28,21 +28,21 @@ class OrderController extends Controller
         }
 
         $orderData = [
-            "userId" => $authenticatedUser->id, 
+            "userId" => new ObjectId($authenticatedUser->id), 
             
             "items" => array_map(function ($item) {
                 return [
-                    "productId" => $item["productId"], 
+                    "productId" => new ObjectId($item["productId"]), 
                     "name" => $item["name"],
-                    "price" => $item["price"],
+                    "price" => (float) $item["price"],
                     "size" => $item["size"] ?? "",
-                    "quantity" => $item["quantity"],
+                    "quantity" => (int) $item["quantity"],
                     "image" => $item["image"] ?? ""
                 ];
             }, $validated['items']),
             
             "address" => $validated['address'],
-            "amount" => $validated['amount'],
+            "amount" => (float) $validated['amount'],
             
             "paymentMethod" => $method, 
             
@@ -90,10 +90,12 @@ class OrderController extends Controller
         }
 
         try {
-            // Truy vấn đúng field bạn đang dùng: userId
-            $orders = Order::where('userId', $user->id)
-                            ->orderBy('date', 'desc')
-                            ->get();
+            $userIdString = (string) $user->id;
+            $userIdObjectId = new ObjectId($userIdString);
+            $orders = Order::where('userId', $userIdObjectId)
+                ->orderBy('date', 'desc')
+                ->get();
+
 
             return response()->json([
                 'success' => true,
