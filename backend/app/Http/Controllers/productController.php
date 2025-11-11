@@ -15,7 +15,12 @@ class ProductController extends Controller
     public function addProduct(AddProductRequest $request): JsonResponse
     {
         $data = $request->validated();
-
+        $data['date'] = time();
+        $data['price'] = (float) $data['price'];
+        if (isset($data['bestseller'])) {
+            $data['bestseller'] = (bool) $data['bestseller'];
+        }
+        
         $product = Product::create($data);
 
         return response()->json([

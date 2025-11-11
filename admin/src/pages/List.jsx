@@ -64,7 +64,6 @@ const List = () => {
 
   // Delete product
  const handleDelete = async (id) => {
-  console.log('🗑️ Deleting product ID:', id);
   
   if (window.confirm('Are you sure you want to delete this product?')) {
     try {
@@ -74,8 +73,8 @@ const List = () => {
         "Accept": "application/json"
       };
       
-      console.log("Deleting ID:", id);
-      console.log("Headers:", headers);
+      // console.log("Deleting ID:", id);
+      // console.log("Headers:", headers);
       
       const response = await axios.post(
         `${backendUrl}/api/product/remove`, 
@@ -83,9 +82,9 @@ const List = () => {
         { headers }
       );
 
-      console.log("Delete response:", response.data);
+      // console.log("Delete response:", response.data);
 
-      // ✅ Fix logic check success
+
       if (response.data.success || response.data.message) {
         toast.success(response.data.message || 'Product deleted successfully');
         await fetchList();
