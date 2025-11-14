@@ -1,0 +1,70 @@
+{
+  "bsonType": "object",
+  "title": "Order Validation Schema",
+  "required": ["userId", "items", "amount", "status", "paymentMethod", "payment", "address"],
+  "properties": {
+    "userId": {
+      "bsonType": "objectId",
+      "description": "ID của người dùng đặt hàng. Bắt buộc."
+    },
+    "items": {
+      "bsonType": "array",
+      "description": "Danh sách các sản phẩm trong đơn hàng.",
+      "minItems": 1,
+      "items": {
+        "bsonType": "object",
+        "required": ["productId", "quantity", "price", "name"],
+        "properties": {
+          "productId": { "bsonType": "objectId" },
+          "name": { "bsonType": "string" },
+          "quantity": {
+            "bsonType": "int",
+            "minimum": 1
+          },
+          "price": {
+            "bsonType": "double",
+            "minimum": 0
+          },
+          "size": { "bsonType": ["string", "null"] },
+          "image": { "bsonType": ["string", "null"] }
+        }
+      }
+    },
+    "address": {
+      "bsonType": "object",
+      "description": "Thông tin địa chỉ nhận hàng. Bắt buộc.",
+      "required": ["fullName", "phone", "address"],
+      "properties": {
+        "fullName": { "bsonType": "string" },
+        "phone": { "bsonType": "string" },
+        "address": { "bsonType": "string" },
+        "email": { "bsonType": ["string", "null"] }
+      }
+    },
+    "amount": {
+      "bsonType": "double",
+      "description": "Tổng số tiền đơn hàng.",
+      "minimum": 0
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "Trạng thái đơn hàng. Bắt buộc.",
+      "enum": ["Order Placed", "Processing", "Shipped", "Delivered", "Cancelled"]
+    },
+    "paymentMethod": {
+      "bsonType": "string",
+      "description": "Phương thức thanh toán. Bắt buộc.",
+      "enum": ["COD", "VNPAY"]
+    },
+    "payment": {
+      "bsonType": "bool",
+      "description": "Trạng thái thanh toán (true/false). Bắt buộc."
+    },
+    "date": {
+      "bsonType": "date",
+      "description": "Ngày đặt hàng."
+    },
+    "created_at": { "bsonType": ["date", "null"] },
+    "updated_at": { "bsonType": ["date", "null"] }
+  }
+}

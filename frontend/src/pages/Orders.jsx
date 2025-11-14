@@ -6,16 +6,12 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { assets } from '../assets/assets';
 
-// **********************************************
-// HÀM TIỆN ÍCH: Nối đường dẫn Backend và Ảnh
-// **********************************************
+
 const buildSrc = (path, baseUrl) => {
   if (!path) return '';
-  // Nếu đường dẫn đã là URL đầy đủ, trả về luôn
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
-  // Loại bỏ dấu '/' ở cuối baseUrl và đầu path (nếu có)
   const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/$/, '') : '';
   const normalizedPath = path.startsWith('/') ? path.substring(1) : path;
   
@@ -29,15 +25,12 @@ const Orders = () => {
   const [productImages, setProductImages] = useState({});
   const navigate = useNavigate();
 
-  // Giả định Phí giao hàng cố định, PHẢI KHỚP VỚI LOGIC THANH TOÁN
   const DELIVERY_FEE = 10; 
 
-  // Check if coming back from payment
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('vnp_ResponseCode') === '00') {
       toast.success('Thanh toán thành công!');
-      // Clean up URL
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get('vnp_ResponseCode')) {
       toast.error('Thanh toán thất bại. Vui lòng thử lại.');
@@ -45,7 +38,6 @@ const Orders = () => {
     }
   }, []);
 
-  // Fetch orders and build image map
   useEffect(() => {
     const fetchOrdersAndImages = async () => {
       try {
@@ -56,7 +48,6 @@ const Orders = () => {
           return;
         }
 
-        // Fetch orders
         const ordersResponse = await axios.get(`${backendUrl}/api/order/userorders`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -67,7 +58,6 @@ const Orders = () => {
         if (ordersResponse.data.success) {
           const ordersData = Array.isArray(ordersResponse.data.orders) ? ordersResponse.data.orders : [];
 
-          // Build productImages map from products available in ShopContext
           try {
             const imagesMap = {};
             if (Array.isArray(products)) {
@@ -85,7 +75,6 @@ const Orders = () => {
           toast.error(ordersResponse.data.message || 'Lỗi khi tải đơn hàng');
         }
       } catch (error) {
-        // Lỗi 401 Unauthorized sẽ rơi vào đây
         console.error('Lỗi khi tải đơn hàng:', error);
         if (error.response && error.response.status === 401) {
             toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
@@ -101,7 +90,6 @@ const Orders = () => {
     fetchOrdersAndImages();
   }, [backendUrl, navigate, products]);
 
-  // Handle retry payment for VNPay
   const handlePayment = async (orderId, amount) => {
     try {
       const token = localStorage.getItem('token');
@@ -111,7 +99,6 @@ const Orders = () => {
         return;
       }
 
-      // Logic gọi API VNPAY (giữ nguyên)
       const endpoints = [
         `${backendUrl}/api/payment/create-vnpay-url`,
         `${backendUrl}/api/payment/create_payment_url`

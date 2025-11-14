@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
+use App\Models\Traits\MongoSchema;
 
 class Order extends Model
 {
-    use HasFactory;
+    use HasFactory,MongoSchema;
 
     protected $connection = 'mongodb';
     protected $collection = 'orders'; 
@@ -36,4 +37,12 @@ class Order extends Model
 
     const STATUS_ENUM = ["Order Placed", "Processing", "Shipped", "Delivered", "Cancelled"];
     const PAYMENT_METHOD_ENUM = ["COD", "VNPAY"];
+    public static function boot()
+    {
+        parent::boot();
+
+        static::creating(function () {
+            static::applyMongoSchema('orders');
+        });
+    }
 }

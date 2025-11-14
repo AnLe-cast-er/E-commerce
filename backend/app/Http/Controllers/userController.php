@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Exception;
-
+use MongoDB\BSON\ObjectId;
 
 class UserController extends Controller
 {
@@ -82,14 +82,18 @@ public function getUserProfile(Request $request)
     }
 
     try {
-        $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
-        $userId = $decoded->id ?? null;
+    // Giả định: use MongoDB\BSON\ObjectId; đã được khai báo ở đầu file
 
-        if (!$userId) {
-            return response()->json(['success' => false, 'message' => 'Invalid token payload'], 401);
-        }
+    $decoded = JWT::decode($token, new Key($jwtSecret, 'HS256'));
+    $userId = $decoded->id ?? null; // Lấy ID (dạng string) từ JWT payload
 
-        $user = User::find($userId);
+    if (!$userId) {
+        return response()->json(['success' => false, 'message' => 'Invalid token payload'], 401);
+    }
+
+        $userObjectId = new ObjectId($userId);
+
+        $user = User::find($userObjectId);
 
         if (!$user) {
             return response()->json(['success' => false, 'message' => 'User not found'], 404);
@@ -100,13 +104,13 @@ public function getUserProfile(Request $request)
             'user' => $user
         ]);
 
-    } catch (Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid or expired token',
-            'error' => $e->getMessage()
-        ], 401);
+    }catch (Exception $e) { 
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid or expired token',
+                'error' => $e->getMessage()
+            ], 401);
+        }
     }
-}
     
 }

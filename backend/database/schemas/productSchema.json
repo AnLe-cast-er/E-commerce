@@ -1,0 +1,50 @@
+{
+  "bsonType": "object",
+  "required": ["name", "price","category", "image"],
+  "properties": {
+    "name": {
+      "bsonType": "string",
+      "description": "Tên sản phẩm, bắt buộc"
+    },
+    "price": {
+      "bsonType": "double",
+      "description": "Giá sản phẩm, bắt buộc"
+    },
+    "image": {
+      "bsonType": "array",
+      "description": "Danh sách đường dẫn hình ảnh",
+      "items": { "bsonType": "string" }
+    },
+    "description": {
+      "bsonType": ["string", "null"],
+      "description": "Mô tả sản phẩm, có thể null"
+    },
+    "category": {
+      "bsonType": ["string", "null"],
+      "description": "Danh mục chính, có thể null"
+    },
+    "subCategory": {
+      "bsonType": ["string", "null"],
+      "description": "Danh mục phụ, có thể null"
+    },
+    "sizes": {
+      "bsonType": ["array", "null"],
+      "items": { "bsonType": "string" },
+      "description": "Danh sách size sản phẩm, có thể null"
+    },
+    "bestseller": {
+      "bsonType": ["bool", "null"],
+      "description": "Có phải sản phẩm bán chạy, có thể null"
+    },
+    "date": {
+      "bsonType": "int",
+      "description": "Ngày tạo hoặc cập nhật, timestamp integer"
+    },
+    "created_at": {
+      "bsonType": ["date", "null"]
+    },
+    "updated_at": {
+      "bsonType": ["date", "null"]
+    }
+  }
+}
