@@ -25,13 +25,13 @@ const Login = () => {
         }
       } else {
         const response = await axios.post(`${backendUrl}/api/user/login`, {email, password});
-        console.log('Login response:', response.data); // Log response for debugging
+        console.log('Login response:', response.data); 
         
         if(response.data.success && response.data.token) {
           setToken(response.data.token);
           localStorage.setItem('token', response.data.token);
           toast.success('Login successful!');
-          navigate('/'); // Redirect to home page after successful login
+          navigate('/'); 
         } else {
           const errorMessage = response.data.message || 'Login failed. Please check your credentials.';
           toast.error(errorMessage);

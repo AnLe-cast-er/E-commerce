@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
+import { useNavigate } from 'react-router-dom';
 
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -10,6 +10,7 @@ const List = () => {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const currency = '$';
+  const navigate = useNavigate();
 
   const buildSrc = (path) => {
     if (!path) return '';
@@ -175,6 +176,14 @@ const List = () => {
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>{product.price}$</td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm text-gray-500'>{product.subCategory}</td>
                 <td className='px-6 py-4 whitespace-nowrap text-sm font-medium'>
+                  <button
+                    onClick={() => navigate(`/edit/${product.id}`)}
+                    className='text-indigo-600 hover:text-indigo-900 mr-4' 
+                    title='Edit'
+                  >
+                    Edit
+                  </button> 
+                  
                   <button
                     onClick={() => handleDelete(product.id)}
                     className='text-red-600 hover:text-red-900'

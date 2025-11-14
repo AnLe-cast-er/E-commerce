@@ -8,7 +8,7 @@ const currency = import.meta.env.VITE_CURRENCY || "$"
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const token = localStorage.getItem("token"); // lấy token admin
+  const token = localStorage.getItem("token"); // get admin token
   // console.log("Admin token:", token);
 
   const fetchOrders = async () => {

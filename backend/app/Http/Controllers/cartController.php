@@ -11,8 +11,8 @@ use App\Http\Requests\Cart\RemoveCartRequest;
 
 class CartController extends Controller
 {
-    // 🛒 Thêm sản phẩm vào giỏ
-    public function add(AddToCartRequest $request) // Sử dụng AddToCartRequest
+    // Add to card
+    public function add(AddToCartRequest $request) 
     {
         $user = $request->user();
         $validated = $request->validated();
@@ -20,17 +20,26 @@ class CartController extends Controller
         $itemId = $validated['itemId'];
         $size   = $validated['size'];
 
-        // Validation 'exists' đảm bảo Product tồn tại, chỉ cần tìm
+       try{
         $product = Product::find($itemId);
-
-        // Lấy giỏ hàng an toàn
+       }catch(Exception $e){
+        Log::error('Failed to find product for cart', [
+                'error' => $e->getMessage(),
+                'item_id' => $itemId
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to find product for cart' 
+            ], 500);
+       }
+        
         $cart = $user->cartData ?? [];
 
-        // Khởi tạo sản phẩm trong giỏ nếu chưa tồn tại
+        
         if (!isset($cart[$itemId])) {
             $cart[$itemId] = [
                 "product" => [
-                    // Dùng $product->id (ObjectId)
+                    // Use $product->id (ObjectId)
                     "_id"   => $product->id, 
                     "name"  => $product->name,
                     "price" => $product->price,
@@ -40,7 +49,7 @@ class CartController extends Controller
             ];
         }
 
-        // Khởi tạo size nếu chưa tồn tại
+
         if (!isset($cart[$itemId]["sizes"][$size])) {
             $cart[$itemId]["sizes"][$size] = 0;
         }
@@ -48,7 +57,18 @@ class CartController extends Controller
         $cart[$itemId]["sizes"][$size]++;
 
         $user->cartData = $cart;
+        try{
         $user->save();
+        }catch(Exception $e){
+            Log::error('Failed to save cart', [
+                'error' => $e->getMessage(),
+                'data' => $cart
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save cart' 
+            ], 500);
+        }
 
         return response()->json([
             "success" => true,
@@ -77,8 +97,18 @@ class CartController extends Controller
             }
         } else {
             if (!isset($cart[$itemId])) {
+                try{
                 $product = Product::find($itemId);
-                
+                }catch(Exception $e){
+                    Log::error('Failed to find product for cart', [
+                        'error' => $e->getMessage(),
+                        'item_id' => $itemId
+                    ]);
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to find product for cart' 
+                    ], 500);
+                }
                 if (!$product) {
                     return response()->json(["success" => false, "message" => "No products found"], 404);
                 }
@@ -98,7 +128,18 @@ class CartController extends Controller
         }
 
         $user->cartData = $cart;
+        try{
         $user->save();
+        }catch(Exception $e){
+            Log::error('Failed to save cart', [
+                'error' => $e->getMessage(),
+                'data' => $cart
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save cart' 
+            ], 500);
+        }
 
         return response()->json([
             "success" => true,
@@ -116,6 +157,7 @@ class CartController extends Controller
         $size   = $validated['size'];
 
         $cart = $user->cartData ?? [];
+        
 
         if (isset($cart[$itemId]["sizes"][$size])) {
             unset($cart[$itemId]["sizes"][$size]);
@@ -123,7 +165,18 @@ class CartController extends Controller
         }
 
         $user->cartData = $cart;
+        try{
         $user->save();
+        }catch(Exception $e){
+            Log::error('Failed to save cart', [
+                'error' => $e->getMessage(),
+                'data' => $cart
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save cart' 
+            ], 500);
+        }
 
         return response()->json([
             "success" => true,

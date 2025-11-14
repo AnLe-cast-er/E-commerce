@@ -173,16 +173,16 @@ const PlaceOrder = () => {
           handleVnpayPayment(response.data.order._id, response.data.order.amount);
         } else {
           // For COD, show success message and redirect to orders page
-          toast.success('Đặt hàng thành công!');
+          toast.success('Order successful!');
           setCartItems({});
           navigate('/orders');
         }
       } else {
-        toast.error(response.data.message || 'Có lỗi xảy ra khi đặt hàng');
+        toast.error(response.data.message || 'An error occurred while placing your order.');
       }
     } catch (error) {
-      console.error('Lỗi khi đặt hàng:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng');
+      console.error('Error when ordering:', error);
+      toast.error(error.response?.data?.message || 'An error occurred while placing your order.');
     }
   };
 
@@ -309,7 +309,7 @@ const PlaceOrder = () => {
 
               {method === 'cod' && (
                 <div className='mt-3 p-3 bg-gray-50 text-gray-700 text-sm rounded-md'>
-                  <p>Nhân viên giao hàng sẽ thu tiền mặt khi giao hàng.</p>
+                  <p>The delivery staff will collect cash on delivery.</p>
                 </div>
               )}
             </div>
@@ -320,11 +320,11 @@ const PlaceOrder = () => {
             >
               {method === 'vnpay' ? (
                 <>
-                  <span>Thanh toán với VNPAY</span>
+                  <span>Payment with VNPAY</span>
                   <img src={assets.vnpay_icon} alt='VNPAY' className='h-6 ml-2' />
                 </>
               ) : (
-                'Đặt hàng ngay'
+                'Order now'
               )}
             </button>
           </form>
@@ -332,7 +332,7 @@ const PlaceOrder = () => {
 
         {/* Right Side - Order Summary */}
         <div>
-          <h3 className='text-xl font-semibold mb-6'>Tóm tắt đơn hàng</h3>
+          <h3 className='text-xl font-semibold mb-6'>Order Summary</h3>
           <CartTotal />
         </div>
       </div>

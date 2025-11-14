@@ -15,7 +15,7 @@ class PaymentController extends Controller
         $vnp_HashSecret = env('VNP_HASH_SECRET');
 
         $vnp_TxnRef = $orderId . "_" . date("YmdHis");
-        $vnp_OrderInfo = "Thanh toan don hang " . $orderId;
+        $vnp_OrderInfo = "Payment for order " . $orderId;
         $vnp_OrderType = "billpayment";
         $vnp_Amount = $order->amount * 100;
         $vnp_Locale = "vn";

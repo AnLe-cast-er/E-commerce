@@ -16,7 +16,7 @@ const VNPayReturn = () => {
 
     if (responseCode === '00') {
       setStatus('success');
-      toast.success('Thanh toán thành công!');
+      toast.success('Payment successful!');
       // Clear pending order from localStorage
       localStorage.removeItem('pendingOrder');
       // Redirect to orders page after 3 seconds
@@ -25,7 +25,7 @@ const VNPayReturn = () => {
       }, 3000);
     } else {
       setStatus('failed');
-      toast.error('Thanh toán thất bại hoặc bị hủy');
+      toast.error('Payment failed or canceled');
       setTimeout(() => {
         navigate('/orders');
       }, 3000);
@@ -35,13 +35,13 @@ const VNPayReturn = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg text-center">
-        <Title text1="THANH TOÁN" text2="VNPAY" />
+        <Title text1="PAYMENT" text2="VNPAY" />
         
         <div className="mt-8">
           {status === 'processing' && (
             <div className="animate-pulse">
               <div className="w-16 h-16 mx-auto border-4 border-t-blue-500 border-blue-200 rounded-full animate-spin"></div>
-              <p className="mt-4 text-gray-600">Đang xử lý thanh toán...</p>
+              <p className="mt-4 text-gray-600">Processing payment...</p>
             </div>
           )}
           
@@ -52,8 +52,8 @@ const VNPayReturn = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
                 </svg>
               </div>
-              <h3 className="mt-4 text-xl font-medium text-green-500">Thanh toán thành công!</h3>
-              <p className="mt-2 text-gray-600">Bạn sẽ được chuyển đến trang đơn hàng...</p>
+              <h3 className="mt-4 text-xl font-medium text-green-500">Payment successful!</h3>
+              <p className="mt-2 text-gray-600">You will be redirected to the order page...</p>
             </div>
           )}
           
@@ -64,8 +64,8 @@ const VNPayReturn = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                 </svg>
               </div>
-              <h3 className="mt-4 text-xl font-medium text-red-500">Thanh toán thất bại!</h3>
-              <p className="mt-2 text-gray-600">Vui lòng thử lại hoặc chọn phương thức thanh toán khác.</p>
+              <h3 className="mt-4 text-xl font-medium text-red-500">Payment failed!</h3>
+              <p className="mt-2 text-gray-600">Please try again or choose another payment method.</p>
             </div>
           )}
           
@@ -73,7 +73,7 @@ const VNPayReturn = () => {
             onClick={() => navigate('/orders')}
             className="mt-8 px-6 py-2 bg-black text-white rounded hover:bg-gray-800 transition-colors"
           >
-            Xem đơn hàng
+            View Orders
           </button>
         </div>
       </div>

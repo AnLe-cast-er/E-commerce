@@ -5,11 +5,11 @@
   "properties": {
     "userId": {
       "bsonType": "objectId",
-      "description": "ID của người dùng đặt hàng. Bắt buộc."
+      "description": "ID of the user who placed the order. Required."
     },
     "items": {
       "bsonType": "array",
-      "description": "Danh sách các sản phẩm trong đơn hàng.",
+      "description": "List of products in the order.",
       "minItems": 1,
       "items": {
         "bsonType": "object",
@@ -32,7 +32,7 @@
     },
     "address": {
       "bsonType": "object",
-      "description": "Thông tin địa chỉ nhận hàng. Bắt buộc.",
+      "description": "Shipping address information. Required.",
       "required": ["fullName", "phone", "address"],
       "properties": {
         "fullName": { "bsonType": "string" },
@@ -43,26 +43,26 @@
     },
     "amount": {
       "bsonType": "double",
-      "description": "Tổng số tiền đơn hàng.",
+      "description": "Total order amount.",
       "minimum": 0
     },
     "status": {
       "bsonType": "string",
-      "description": "Trạng thái đơn hàng. Bắt buộc.",
+      "description": "Order status. Required.",
       "enum": ["Order Placed", "Processing", "Shipped", "Delivered", "Cancelled"]
     },
     "paymentMethod": {
       "bsonType": "string",
-      "description": "Phương thức thanh toán. Bắt buộc.",
+      "description": "Payment method. Required.",
       "enum": ["COD", "VNPAY"]
     },
     "payment": {
       "bsonType": "bool",
-      "description": "Trạng thái thanh toán (true/false). Bắt buộc."
+      "description": "Payment status (true/false). Required."
     },
     "date": {
       "bsonType": "date",
-      "description": "Ngày đặt hàng."
+      "description": "Order date."
     },
     "created_at": { "bsonType": ["date", "null"] },
     "updated_at": { "bsonType": ["date", "null"] }

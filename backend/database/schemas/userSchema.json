@@ -5,38 +5,39 @@
     "name": {
       "bsonType": "string",
       "maxLength": 255,
-      "description": "Tên người dùng, bắt buộc, tối đa 255 ký tự"
+      "description": "Username, required, maximum 255 characters"
     },
     "email": {
       "bsonType": "string",
       "maxLength": 255,
       "pattern": "^.+@.+$",
-      "description": "Email người dùng, bắt buộc, hợp lệ và tối đa 255 ký tự"
+      "description": "User email, required, valid and maximum 255 characters"
     },
     "password": {
       "bsonType": "string",
       "minLength": 8,
-      "description": "Mật khẩu người dùng, bắt buộc, tối thiểu 8 ký tự"
+      "maxLength": 255,
+      "description": "User password, required, minimum 8 characters"
     },
     "cartData": {
       "bsonType": "array",
-      "description": "Giỏ hàng của user, optional",
+      "description": "User shopping cart, optional",
       "items": {
         "bsonType": "object",
-        "required": ["product_id", "quantity"],
+        "required": ["productId", "quantity"],
         "properties": {
-          "product_id": { "bsonType": "objectId" },
+          "productId": { "bsonType": "objectId" },
           "quantity": { "bsonType": "int" }
         }
       }
     },
     "email_verified_at": {
       "bsonType": ["date", "null"],
-      "description": "Thời gian xác thực email"
+      "description": "Email verification time"
     },
     "remember_token": {
       "bsonType": ["string", "null"],
-      "description": "Token ghi nhớ"
+      "description": "Memo tokens"
     },
     "created_at": { "bsonType": "date" },
     "updated_at": { "bsonType": "date" }

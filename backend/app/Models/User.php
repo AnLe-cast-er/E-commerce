@@ -7,11 +7,11 @@ use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
 use MongoDB\Laravel\Auth\User as Authenticatable;
-use App\Models\Traits\MongoSchema;
+
 
 class User extends Authenticatable implements AuthenticatableContract
 {
-    use HasFactory, HasApiTokens, Notifiable,MongoSchema;
+    use HasFactory, HasApiTokens, Notifiable;
 
     protected $connection = 'mongodb';
     protected $collection = 'users';
@@ -31,14 +31,5 @@ class User extends Authenticatable implements AuthenticatableContract
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function () {
-            static::applyMongoSchema('orders');
-        });
-    }
-
 
 }

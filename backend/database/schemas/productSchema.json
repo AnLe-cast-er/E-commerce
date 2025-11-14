@@ -1,44 +1,44 @@
 {
   "bsonType": "object",
-  "required": ["name", "price","category", "image"],
+  "required": ["name", "price","category", "image", "description", "subCategory", "sizes"],
   "properties": {
     "name": {
       "bsonType": "string",
-      "description": "Tên sản phẩm, bắt buộc"
+      "description": "Product name, required"
     },
     "price": {
       "bsonType": "double",
-      "description": "Giá sản phẩm, bắt buộc"
+      "description": "Product price, required"
     },
     "image": {
       "bsonType": "array",
-      "description": "Danh sách đường dẫn hình ảnh",
+      "description": "List of image URLs",
       "items": { "bsonType": "string" }
     },
     "description": {
-      "bsonType": ["string", "null"],
-      "description": "Mô tả sản phẩm, có thể null"
+      "bsonType": "string",
+      "description": "Product description, required"
     },
     "category": {
-      "bsonType": ["string", "null"],
-      "description": "Danh mục chính, có thể null"
+      "bsonType": "string",
+      "description": "Main category, required"
     },
     "subCategory": {
-      "bsonType": ["string", "null"],
-      "description": "Danh mục phụ, có thể null"
+      "bsonType": "string",
+      "description": "Sub-category, required"
     },
     "sizes": {
-      "bsonType": ["array", "null"],
+      "bsonType": "array",
       "items": { "bsonType": "string" },
-      "description": "Danh sách size sản phẩm, có thể null"
+      "description": "List of product sizes, required"
     },
     "bestseller": {
       "bsonType": ["bool", "null"],
-      "description": "Có phải sản phẩm bán chạy, có thể null"
+      "description": "Whether the product is a bestseller, can be null"
     },
     "date": {
       "bsonType": "int",
-      "description": "Ngày tạo hoặc cập nhật, timestamp integer"
+      "description": "Creation or update date, timestamp integer"
     },
     "created_at": {
       "bsonType": ["date", "null"]

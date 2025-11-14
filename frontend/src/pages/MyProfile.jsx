@@ -26,7 +26,6 @@ const MyProfile = () => {
         
         if (!token) {
           toast.error("Please login first");
-          // navigate('/login'); // Nếu có navigate
           return;
         }
 
@@ -56,7 +55,6 @@ const MyProfile = () => {
         if (error.response?.status === 401) {
           toast.error("Session expired. Please login again");
           localStorage.removeItem("token");
-          // navigate('/login'); // Redirect về login
         } else {
           toast.error("Failed to load profile data");
         }
@@ -101,8 +99,8 @@ const MyProfile = () => {
         },
         {
           headers: { 
-            Authorization: `Bearer ${token}`, // ✅ Đổi từ { token } thành Bearer format
-            Accept: "application/json", // ✅ Thêm Accept header
+            Authorization: `Bearer ${token}`, 
+            Accept: "application/json", 
             "Content-Type": "application/json"
           },
         }

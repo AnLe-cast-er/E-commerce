@@ -30,10 +30,10 @@ const Orders = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('vnp_ResponseCode') === '00') {
-      toast.success('Thanh toán thành công!');
+      toast.success('Payment successful!');
       window.history.replaceState({}, document.title, window.location.pathname);
     } else if (params.get('vnp_ResponseCode')) {
-      toast.error('Thanh toán thất bại. Vui lòng thử lại.');
+      toast.error('Payment failed. Please try again.');
       window.history.replaceState({}, document.title, window.location.pathname);
     }
   }, []);
@@ -43,7 +43,7 @@ const Orders = () => {
       try {
         const token = localStorage.getItem('token');
         if (!token) {
-          toast.error('Vui lòng đăng nhập để xem đơn hàng');
+          toast.error('Please login to view order');
           navigate('/login');
           return;
         }
@@ -67,20 +67,20 @@ const Orders = () => {
             }
             setProductImages(imagesMap);
           } catch (err) {
-            console.error('Lỗi khi xây dựng productImages:', err);
+            console.error('Error building productImages:', err);
           }
 
           setOrders(ordersData);
         } else {
-          toast.error(ordersResponse.data.message || 'Lỗi khi tải đơn hàng');
+          toast.error(ordersResponse.data.message || 'Error loading order');
         }
       } catch (error) {
-        console.error('Lỗi khi tải đơn hàng:', error);
+        console.error('Error loading order:', error);
         if (error.response && error.response.status === 401) {
-            toast.error('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
+            toast.error('Your session has expired. Please log in again.');
             navigate('/login');
         } else {
-            toast.error('Có lỗi xảy ra khi tải đơn hàng');
+            toast.error('An error occurred while loading the order.');
         }
       } finally {
         setLoading(false);
@@ -122,15 +122,15 @@ const Orders = () => {
       }
 
       if (!paymentUrl) {
-        toast.error('Không thể khởi tạo đường dẫn thanh toán VNPAY');
+        toast.error('Unable to initialize VNPAY payment link');
         return;
       }
 
       localStorage.setItem('pendingOrder', JSON.stringify({ orderId, amount, timestamp: Date.now() }));
       window.location.href = paymentUrl;
     } catch (error) {
-      console.error('Lỗi khi thanh toán VNPAY:', error);
-      toast.error('Có lỗi xảy ra khi khởi tạo thanh toán');
+      console.error('Error when paying VNPAY:', error);
+      toast.error('An error occurred while initiating payment.');
     }
   };
 
@@ -176,7 +176,7 @@ const Orders = () => {
   return (
     <div className='container mx-auto px-4 py-16'>
       <div className='text-2xl mb-8'>
-        <Title text1="ĐƠN HÀNG" text2="CỦA TÔI" />
+        <Title text1="MY" text2="ORDERS" />
       </div>
 
       {orders.length === 0 ? (
@@ -200,12 +200,12 @@ const Orders = () => {
             <div key={order.id} className="border rounded-lg overflow-hidden shadow-sm">
               <div className="bg-gray-50 px-6 py-4 border-b flex justify-between items-center">
                 <div>
-                  <span className="font-medium">Mã đơn hàng: </span>
+                  <span className="font-medium">Order code: </span>
                   <span className="text-gray-700">{order.id}</span>
                 </div>
                 <div className="flex items-center space-x-4">
                   <div>
-                    <span className="font-medium">Ngày đặt: </span>
+                    <span className="font-medium">Booking date: </span>
                     <span className="text-gray-700">
                       {new Date(order.date || order.createdAt).toLocaleDateString('vi-VN', {
                           year: 'numeric',

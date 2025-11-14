@@ -4,11 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use MongoDB\Laravel\Eloquent\Model;
-use App\Models\Traits\MongoSchema;
 
 class Product extends Model
 {
-    use HasFactory,MongoSchema;
+    use HasFactory;
 
     protected $collection = 'products';
     protected $connection = 'mongodb';
@@ -29,12 +28,4 @@ class Product extends Model
         'bestseller' => 'boolean',
         'date' => 'integer',     
     ];
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function () {
-            static::applyMongoSchema('products');
-        });
-    }
 }

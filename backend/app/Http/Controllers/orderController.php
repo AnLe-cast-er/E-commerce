@@ -52,11 +52,30 @@ class OrderController extends Controller
             
             "date" => Carbon::now()
         ];
-
+        try{
         $order = \App\Models\Order::create($orderData); 
+        }catch(Exception $e){
+            Log::error('Failed to create order', [
+                'error' => $e->getMessage(),
+                'userId' => $authenticatedUser->id,
+                'method'=>$method,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create order' 
+            ], 500);
+        }
 
         if ($method === "COD") {
+            try{
             $authenticatedUser->update(["cartData" => []]); 
+            } catch (Exception $e) {
+                Log::error('Order placed, but FAILED to clear user cart', [
+                    'error' => $e->getMessage(),
+                    'userId' => $authenticatedUser->id,
+                    'orderId' => $order->id ?? 'N/A'
+                ]);
+            }
         }
 
         return response()->json([
@@ -69,11 +88,32 @@ class OrderController extends Controller
     public function updateStatus(UpdateOrderStatusRequest $request)
     {
         $validated = $request->validated();
-        
+        try{
         $order = Order::find($validated['orderId']); 
+        }catch(Exception $e){
+            Log::error('Failed to update order status', [
+                'error' => $e->getMessage(),
+                'orderId' => $validated['orderId'],
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status' 
+            ], 500);
+        }
         
         $order->status = $validated['status'];
+        try{
         $order->save();
+        }catch(Exception $e){
+            Log::error('Failed to update order status', [
+                'error' => $e->getMessage(),
+                'orderId' => $validated['orderId'],
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status' 
+            ], 500);
+        }
 
         return response()->json([
             "success" => true,

@@ -15,7 +15,6 @@ const Collection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
 
-  // 🧩 1. Chuẩn hóa dữ liệu từ products
  useEffect(() => {
   if (products.length > 0) {
     const normalized = products.map((p) => {
@@ -33,7 +32,6 @@ const Collection = () => {
 }, [products]);
 
 
-  // 🧩 2. Hàm toggle filter
   const toggleCategory = (e) => {
     const { value } = e.target;
     setCategory((prev) =>
@@ -47,19 +45,16 @@ const Collection = () => {
     const { value } = e.target;
     
     setSubCategory((prev) => {
-      // Kiểm tra xem giá trị đã tồn tại trong mảng chưa (so sánh không phân biệt hoa thường)
       const isExisting = prev.some(item => 
         item.toLowerCase() === value.toLowerCase()
       );
       
-      // Nếu đã tồn tại thì lọc ra, nếu chưa thì thêm vào (giữ nguyên kiểu viết hoa)
       return isExisting
         ? prev.filter(item => item.toLowerCase() !== value.toLowerCase())
         : [...prev, value];
     });
   };
 
-  // 🧩 3. Hàm sắp xếp
   const sortProducts = (arr) => {
     const sorted = [...arr];
     if (sortBy === "Low to High") {
@@ -82,7 +77,6 @@ const Collection = () => {
       );
     }
 
-    // 📂 Lọc theo Category
     if (category.length > 0) {
       filtered = filtered.filter((item) =>
         category.some(
@@ -91,7 +85,6 @@ const Collection = () => {
       );
     }
 
-    // 🏷️ Lọc theo SubCategory (case-insensitive)
     if (subCategory.length > 0) {
       filtered = filtered.filter((item) => {
         const itemSubCategory = (item.subCategory || "").toLowerCase();
@@ -103,24 +96,19 @@ const Collection = () => {
 
     }
 
-    // 🔢 Sắp xếp sau khi lọc
     filtered = sortProducts(filtered);
     setFilteredProducts(filtered);
   };
 
-  // 🧩 5. Re-run filters khi filter hoặc search thay đổi
   useEffect(() => {
     setCurrentPage(1);
     applyFilters();
   }, [category, subCategory, search, showSearch, sortBy, normalizedProducts]);
-
-  // 🧩 6. Pagination logic
   const startIndex = (currentPage - 1) * productsPerPage;
   const endIndex = startIndex + productsPerPage;
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  // 🧩 7. Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -129,7 +117,6 @@ const Collection = () => {
     );
   }
 
-  // 🧩 8. Render UI
   return (
     
     <div className="flex gap-8 px-8 py-10">
