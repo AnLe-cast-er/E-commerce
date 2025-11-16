@@ -32,5 +32,5 @@ class User extends Authenticatable implements AuthenticatableContract
         'email_verified_at' => 'datetime',
     ];
 
-
+    
 }

@@ -8,7 +8,6 @@ export const ShopContext = createContext();
 const ShopContextProvider = ({ children }) => {
   const currency = "$";
   const delivery_fee = 10;
-  // Ensure backend URL doesn't end with a trailing slash to avoid double // when building endpoints
   const backendUrl = (import.meta.env.VITE_BACKEND_URL || '').replace(/\/$/, '');
   const navigate = useNavigate();
 
@@ -41,6 +40,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
         image: item.image,
         price: item.price,
         category: item.category,
+        subCategory: item.subCategory || item.SubCategory || "",
         bestseller: item.bestseller,
         sizes: item.sizes || [],  
       }));
@@ -107,7 +107,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
   const addToCart = async (itemId, size, quantity = 1) => {
   if (!size) return toast.error("Please select a size before adding to cart");
 
-  const qty = Math.max(1, Number(quantity) || 1); // đảm bảo là số dương
+  const qty = Math.max(1, Number(quantity) || 1);
 
   const newCart = { ...cartItems };
   const product = products.find(p => p._id === itemId);
@@ -115,7 +115,6 @@ const getProductsData = async (retries = 3, delay = 2000) => {
     return toast.error("Product not found");
   }
 
-  // Nếu sản phẩm chưa có trong giỏ
   if (!newCart[itemId]) {
     newCart[itemId] = {
       product: {
@@ -128,12 +127,10 @@ const getProductsData = async (retries = 3, delay = 2000) => {
     };
   }
 
-  // Đảm bảo sizes tồn tại
   if (!newCart[itemId].sizes) {
     newCart[itemId].sizes = {};
   }
 
-  // ✅ Cập nhật số lượng cho size cụ thể
   const currentQty = newCart[itemId].sizes[size] || 0;
   newCart[itemId].sizes[size] = currentQty + qty;
 
@@ -147,7 +144,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
   try {
     const response = await axios.post(
       `${backendUrl}/api/cart/add`,
-      { itemId, size, quantity: qty }, // ✅ gửi thêm quantity
+      { itemId, size, quantity: qty }, 
       {
         headers: {
           "Content-Type": "application/json",
@@ -158,7 +155,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
       }
     );
 
-    await getCartData(); // đồng bộ lại giỏ hàng
+    await getCartData(); 
   } catch (error) {
     console.error("Error addToCart:", error.response?.data || error);
   }
@@ -202,15 +199,12 @@ const getProductsData = async (retries = 3, delay = 2000) => {
 
   const updateQuantity = async (itemId, size, quantity) => {
     try {
-      // Create a copy of current cart items
       const updatedCart = { ...cartItems };
       
-      // If quantity is 0 or less, remove the item
       if (quantity <= 0) {
         if (updatedCart[itemId]?.sizes?.[size]) {
           delete updatedCart[itemId].sizes[size];
           
-          // If no sizes left, remove the item completely
           if (Object.keys(updatedCart[itemId].sizes).length === 0) {
             delete updatedCart[itemId];
           }
@@ -232,7 +226,6 @@ const getProductsData = async (retries = 3, delay = 2000) => {
       // Update local state
       setCartItems(updatedCart);
       
-      // Sync with server if authenticated
       if (token) {
         await axios.put(
           `${backendUrl}/api/cart/update`,
@@ -248,8 +241,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
       }
     } catch (error) {
       console.error("Error updating cart:", error);
-      toast.error(error.response?.data?.message || "Lỗi khi cập nhật giỏ hàng");
-      // Revert to previous state on error
+      toast.error(error.response?.data?.message || "Error updating cart");
       setCartItems({ ...cartItems });
     }
   }
@@ -266,12 +258,11 @@ const getProductsData = async (retries = 3, delay = 2000) => {
       });
       
       if (response.data.success) {
-        // Use cartData from response if available, otherwise use empty object
         const cartData = response.data.cartData || {};
         setCartItems(cartData);
       } else {
         console.error("Failed to load cart:", response.data.message);
-        toast.error(response.data.message || "Không thể tải giỏ hàng");
+        toast.error(response.data.message || "Unable to load cart");
       }
     } catch (error) {
       console.log(error);
@@ -302,7 +293,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
         try {
           await axios.post(
             `${backendUrl}/api/cart/update`,
-            { itemId, size, quantity: 0 }, // Set quantity to 0 to remove
+            { itemId, size, quantity: 0 }, 
             {
               headers: {
                 'Content-Type': 'application/json',
@@ -313,7 +304,7 @@ const getProductsData = async (retries = 3, delay = 2000) => {
           );
         } catch (error) {
           console.error("Error removing from cart:", error);
-          toast.error("Lỗi khi xóa sản phẩm khỏi giỏ hàng");
+          toast.error("Error removing product from cart");
         }
       }
     }

@@ -9,12 +9,13 @@ use Illuminate\Http\Request;
 use App\Http\Requests\Order\PlaceOrderRequest;
 use App\Http\Requests\Order\UpdateOrderStatusRequest;
 use Illuminate\Support\Facades\Log;
-
+use MongoDB\BSON\ObjectId;
+use Exception;
 
 class OrderController extends Controller
 {
-   
-    // OrderController.php (Hàm placeOrder)
+
+
 
     public function placeOrder(PlaceOrderRequest $request)
     {
@@ -28,21 +29,21 @@ class OrderController extends Controller
         }
 
         $orderData = [
-            "userId" => $authenticatedUser->id, 
+            "userId" => new ObjectId($authenticatedUser->id), 
             
             "items" => array_map(function ($item) {
                 return [
-                    "productId" => $item["productId"], 
+                    "productId" => new ObjectId($item["productId"]), 
                     "name" => $item["name"],
-                    "price" => $item["price"],
+                    "price" => (float) $item["price"],
                     "size" => $item["size"] ?? "",
-                    "quantity" => $item["quantity"],
+                    "quantity" => (int) $item["quantity"],
                     "image" => $item["image"] ?? ""
                 ];
             }, $validated['items']),
             
             "address" => $validated['address'],
-            "amount" => $validated['amount'],
+            "amount" => (float) $validated['amount'],
             
             "paymentMethod" => $method, 
             
@@ -52,11 +53,30 @@ class OrderController extends Controller
             
             "date" => Carbon::now()
         ];
-
+        try{
         $order = \App\Models\Order::create($orderData); 
+        }catch(Exception $e){
+            Log::error('Failed to create order', [
+                'error' => $e->getMessage(),
+                'userId' => $authenticatedUser->id,
+                'method'=>$method,
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create order' 
+            ], 500);
+        }
 
         if ($method === "COD") {
+            try{
             $authenticatedUser->update(["cartData" => []]); 
+            } catch (Exception $e) {
+                Log::error('Order placed, but FAILED to clear user cart', [
+                    'error' => $e->getMessage(),
+                    'userId' => $authenticatedUser->id,
+                    'orderId' => $order->id ?? 'N/A'
+                ]);
+            }
         }
 
         return response()->json([
@@ -69,11 +89,32 @@ class OrderController extends Controller
     public function updateStatus(UpdateOrderStatusRequest $request)
     {
         $validated = $request->validated();
-        
+        try{
         $order = Order::find($validated['orderId']); 
+        }catch(Exception $e){
+            Log::error('Failed to update order status', [
+                'error' => $e->getMessage(),
+                'orderId' => $validated['orderId'],
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status' 
+            ], 500);
+        }
         
         $order->status = $validated['status'];
+        try{
         $order->save();
+        }catch(Exception $e){
+            Log::error('Failed to update order status', [
+                'error' => $e->getMessage(),
+                'orderId' => $validated['orderId'],
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update order status' 
+            ], 500);
+        }
 
         return response()->json([
             "success" => true,
@@ -90,10 +131,12 @@ class OrderController extends Controller
         }
 
         try {
-            // Truy vấn đúng field bạn đang dùng: userId
-            $orders = Order::where('userId', $user->id)
-                            ->orderBy('date', 'desc')
-                            ->get();
+            $userIdString = (string) $user->id;
+            $userIdObjectId = new ObjectId($userIdString);
+            $orders = Order::where('userId', $userIdObjectId)
+                ->orderBy('date', 'desc')
+                ->get();
+
 
             return response()->json([
                 'success' => true,

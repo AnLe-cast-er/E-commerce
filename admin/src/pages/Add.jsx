@@ -3,19 +3,22 @@ import { assets } from "../assets/assets";
 import axios from "axios";
 import { toast } from "react-toastify";
 
+
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Add = () => {
   const [images, setImages] = useState([null, null, null, null]);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState("Men");
-  const [subCategory, setSubCategory] = useState("Topwear");
+  const [category, setCategory] = useState("Men"); 
+  const [subCategory, setSubCategory] = useState("Topwear"); 
   const [price, setPrice] = useState("");
   const [sizes, setSizes] = useState([]);
   const [bestseller, setBestseller] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [validationErrors, setValidationErrors] = useState({});
+  
+  
   const uploadToCloudinary = async (file) => {
     if (!file) return null;
 
@@ -65,7 +68,7 @@ const Add = () => {
       const productData = {
         name,
         description,
-        category_id: category,      
+        category: category,      
         subCategory: subCategory,  
         price: parseFloat(price),   
         sizes,
@@ -73,8 +76,7 @@ const Add = () => {
         image: imageUrls,
       };
 
-      console.log("🟢 Sending product data:", productData);
-
+      // console.log("🟢 Sending product data:", productData);
       const config = {
         headers: {
           "Content-Type": "application/json",
@@ -87,24 +89,21 @@ const Add = () => {
         productData,
         config
       );
-
-      if (response.data.success) {
-        toast.success("✅ Product added successfully!");
+      toast.success("✅ Product added successfully! Form reset.");
+              
         setName("");
         setDescription("");
         setPrice("");
         setBestseller(false);
         setSizes([]);
         setImages([null, null, null, null]);
-      } else {
-        toast.error(response.data.message);
-      }
+        setCategory("Men"); 
+        setSubCategory("Topwear");
     } catch (error) {
-      if (error.response) {
-        console.log("Validation errors:", error.response.data);
-        toast.error(
-          "Validation error: " + JSON.stringify(error.response.data.errors)
-        );
+        if (error.response && error.response.status === 422) { 
+        const errors = error.response.data.errors || {}; 
+        setValidationErrors(errors);
+        toast.error("Vui lòng kiểm tra lại tất cả các trường bắt buộc.");
       } else {
         console.error("Error adding product:", error);
         toast.error("Failed to add product");
@@ -122,34 +121,37 @@ const Add = () => {
         className="flex flex-col w-full items-start gap-6 p-6 bg-white rounded-lg shadow-md"
       >
         {/* Image Upload */}
-        <div>
-          <p className="mb-2">Upload Image</p>
-          <div className="flex gap-3">
-            {images.map((img, i) => (
-              <label key={i} htmlFor={`image${i}`}>
-                <img
-                  className="w-20 h-20 object-cover border rounded"
-                  src={!img ? assets.upload_icon : URL.createObjectURL(img)}
-                  alt=""
-                />
-                <input
-                  onChange={(e) => {
-                    const newImgs = [...images];
-                    newImgs[i] = e.target.files[0];
-                    setImages(newImgs);
-                  }}
-                  type="file"
-                  id={`image${i}`}
-                  hidden
-                />
-              </label>
-            ))}
+          <div>
+            <p className="mb-2">Upload Image *</p>
+            <div className="flex gap-3">
+              {images.map((img, i) => (
+                <label key={i} htmlFor={`image${i}`}>
+                  <img
+                    className="w-20 h-20 object-cover border rounded"
+                    src={!img ? assets.upload_icon : URL.createObjectURL(img)}
+                    alt=""
+                  />
+                  <input
+                    onChange={(e) => {
+                      const newImgs = [...images];
+                      newImgs[i] = e.target.files[0];
+                      setImages(newImgs);
+                    }}
+                    type="file"
+                    id={`image${i}`}
+                    hidden
+                  />
+                </label>
+              ))}
+            </div>
+            {validationErrors.image && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.image[0]}</p>
+            )}
           </div>
-        </div>
 
         {/* Name */}
         <div className="w-full">
-          <p className="mb-2">Product Name</p>
+          <p className="mb-2">Product Name *</p>
           <input
             onChange={(e) => setName(e.target.value)}
             value={name}
@@ -158,11 +160,14 @@ const Add = () => {
             placeholder="Type here"
             required
           />
+          {validationErrors.name && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.name[0]}</p>
+          )}
         </div>
 
         {/* Description */}
         <div className="w-full">
-          <p className="mb-2">Product Description</p>
+          <p className="mb-2">Product Description *</p>
           <textarea
             onChange={(e) => setDescription(e.target.value)}
             value={description}
@@ -170,6 +175,9 @@ const Add = () => {
             placeholder="Write here"
             required
           />
+          {validationErrors.description && (
+            <p className="text-red-500 text-sm mt-1">{validationErrors.description[0]}</p>
+          )}
         </div>
 
         {/* Category, Subcategory, Price */}
@@ -201,7 +209,7 @@ const Add = () => {
           </div>
 
           <div>
-            <p className="mb-2">Product Price</p>
+            <p className="mb-2">Product Price *</p>
             <input
               onChange={(e) => setPrice(e.target.value)}
               value={price}
@@ -210,12 +218,15 @@ const Add = () => {
               placeholder="25"
               required
             />
+            {validationErrors.price && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.price[0]}</p>
+            )}
           </div>
         </div>
 
         {/* Sizes */}
         <div className="w-full">
-          <p className="mb-2">Product Sizes</p>
+          <p className="mb-2">Product Sizes *</p>
           <div className="flex gap-2 flex-wrap">
             {["S", "M", "L", "XL", "XXL"].map((size) => {
               const selected = sizes.includes(size);
@@ -238,7 +249,10 @@ const Add = () => {
               );
             })}
           </div>
-        </div>
+            {validationErrors.sizes && (
+              <p className="text-red-500 text-sm mt-1">{validationErrors.sizes[0]}</p>
+            )}
+          </div>
 
         {/* Bestseller */}
         <div className="flex gap-2 mt-2">

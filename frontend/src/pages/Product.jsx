@@ -9,9 +9,8 @@ const Product = () => {
   const [image, setImage] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedSize, setSelectedSize] = useState("");
-  const [quantity, setQuantity] = useState(1); // ✅ Thêm state cho số lượng
+  const [quantity, setQuantity] = useState(1); 
 
-  // ✅ Chuẩn hóa đường dẫn ảnh
   const buildSrc = (path) => {
     if (!path) return "";
     const normalized = String(path).replace(/\\/g, "/").replace(/^\//, "");
@@ -20,7 +19,6 @@ const Product = () => {
     return `${base}/${normalized}`;
   };
 
-  // ✅ Tìm sản phẩm theo id (đã normalize)
   useEffect(() => {
     if (products.length > 0) {
       const found = products.find(
@@ -35,7 +33,6 @@ const Product = () => {
     }
   }, [products, productId]);
 
-  // ✅ Hàm tăng/giảm số lượng
   const increaseQuantity = () => setQuantity((prev) => prev + 1);
   const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
 
@@ -138,7 +135,7 @@ const Product = () => {
             </div>
           )}
 
-          {/* ✅ Quantity Selector */}
+          {/* Quantity Selector */}
           <div className="flex flex-col gap-4 my-6">
             <p className="font-medium">Quantity</p>
             <div className="flex items-center gap-4">
@@ -164,10 +161,10 @@ const Product = () => {
           <button
             onClick={() => {
               if (!selectedSize) {
-                alert("Vui lòng chọn kích thước trước khi thêm vào giỏ hàng!");
+                alert("Please select size before adding to cart!");
                 return;
               }
-              // ✅ Thêm số lượng vào giỏ hàng
+
               for (let i = 0; i < quantity; i++) {
                 addToCart(productData._id, selectedSize);
               }

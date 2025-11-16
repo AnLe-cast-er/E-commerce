@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Title from '../components/Title';
@@ -8,6 +8,7 @@ import { ShopContext } from '../context/ShopContext';
 import { toast } from 'react-toastify';
 
 const PlaceOrder = () => {
+  const [loggedInUserEmail, setLoggedInUserEmail] = useState('');
   const [method, setMethod] = useState('cod');
   const [formData, setFormData] = useState({
     firstName: '',
@@ -25,7 +26,21 @@ const PlaceOrder = () => {
   
   const navigate = useNavigate();
   const { backendUrl, cartItems, setCartItems, getCartAmount, delivery_fee, products } = useContext(ShopContext);
-  
+  // useEffect(() => {
+  //       const token = localStorage.getItem('token');
+  //       if (token) {
+  //           axios.get(`${backendUrl}/api/user/profile`, { headers: { Authorization: `Bearer ${token}` }})
+  //               .then(response => {
+  //                   if (response.data.success && response.data.user?.email) {
+  //                       setLoggedInUserEmail(response.data.user.email);
+  //                       setFormData(data => ({ ...data, email: response.data.user.email }));
+  //                   }
+  //               })
+  //               .catch(err => {
+  //                   console.error('Không thể lấy thông tin user');
+  //               });
+  //       }
+  //   }, [backendUrl]);
   // Handle VNPAY payment
   const handleVnpayPayment = async (orderId, amount) => {
     try {
@@ -158,16 +173,16 @@ const PlaceOrder = () => {
           handleVnpayPayment(response.data.order._id, response.data.order.amount);
         } else {
           // For COD, show success message and redirect to orders page
-          toast.success('Đặt hàng thành công!');
+          toast.success('Order successful!');
           setCartItems({});
           navigate('/orders');
         }
       } else {
-        toast.error(response.data.message || 'Có lỗi xảy ra khi đặt hàng');
+        toast.error(response.data.message || 'An error occurred while placing your order.');
       }
     } catch (error) {
-      console.error('Lỗi khi đặt hàng:', error);
-      toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng');
+      console.error('Error when ordering:', error);
+      toast.error(error.response?.data?.message || 'An error occurred while placing your order.');
     }
   };
 
@@ -208,14 +223,16 @@ const PlaceOrder = () => {
             </div>
 
             <div>
-              <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
-              <input
-                type='email'
-                name='email'
-                value={formData.email}
-                onChange={onChangeHandler}
-                className='w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-black focus:border-transparent'
-              />
+                <label className='block text-sm font-medium text-gray-700 mb-1'>Email</label>
+                <input
+                    type='email'
+                    name='email'
+                    value={formData.email} 
+                    onChange={onChangeHandler}
+                    className='w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-black focus:border-transparent'
+                    // readOnly
+                    // disabled 
+                />
             </div>
 
             <div>
@@ -264,7 +281,7 @@ const PlaceOrder = () => {
                   
                 </div>
 
-                <div className='flex items-center p-3 border rounded-md hover:bg-gray-50'>
+                {/* <div className='flex items-center p-3 border rounded-md hover:bg-gray-50'>
                   <input
                     type='radio'
                     id='vnpay'
@@ -281,18 +298,18 @@ const PlaceOrder = () => {
                     <p className='text-xs text-gray-500 mt-1'>Pay securely through VNPAY gateway</p>
                   </div>
                   <img src={assets.vnpay_icon} alt='VNPAY' className='h-8 ml-2' />
-                </div>
+                </div> */}
               </div>
 
-              {method === 'vnpay' && (
+              {/* {method === 'vnpay' && (
                 <div className='mt-3 p-3 bg-blue-50 text-blue-700 text-sm rounded-md'>
                   <p>Bạn sẽ được chuyển đến trang thanh toán VNPAY sau khi xác nhận đơn hàng.</p>
                 </div>
-              )}
+              )} */}
 
               {method === 'cod' && (
                 <div className='mt-3 p-3 bg-gray-50 text-gray-700 text-sm rounded-md'>
-                  <p>Nhân viên giao hàng sẽ thu tiền mặt khi giao hàng.</p>
+                  <p>The delivery staff will collect cash on delivery.</p>
                 </div>
               )}
             </div>
@@ -303,11 +320,11 @@ const PlaceOrder = () => {
             >
               {method === 'vnpay' ? (
                 <>
-                  <span>Thanh toán với VNPAY</span>
+                  <span>Payment with VNPAY</span>
                   <img src={assets.vnpay_icon} alt='VNPAY' className='h-6 ml-2' />
                 </>
               ) : (
-                'Đặt hàng ngay'
+                'Order now'
               )}
             </button>
           </form>
@@ -315,7 +332,7 @@ const PlaceOrder = () => {
 
         {/* Right Side - Order Summary */}
         <div>
-          <h3 className='text-xl font-semibold mb-6'>Tóm tắt đơn hàng</h3>
+          <h3 className='text-xl font-semibold mb-6'>Order Summary</h3>
           <CartTotal />
         </div>
       </div>

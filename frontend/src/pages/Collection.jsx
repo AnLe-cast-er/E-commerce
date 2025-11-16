@@ -4,6 +4,7 @@ import ProductItem from "../components/ProductItem";
 
 const Collection = () => {
   const { products, search, showSearch } = useContext(ShopContext);
+  const [normalizedProducts, setNormalizedProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [category, setCategory] = useState([]);
   const [subCategory, setSubCategory] = useState([]);
@@ -14,21 +15,23 @@ const Collection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
 
-  // ✅ Khi products load xong từ context
-  useEffect(() => {
+ useEffect(() => {
   if (products.length > 0) {
-    setLoading(false);
-    const normalizedProducts = products.map(p => ({
-      ...p,
-      subCategory: p.subCategory || p.SubCategory || p.subcategory || "",
-      category: p.category || p.Category || p.categoryName || "",
-    }));
+    const normalized = products.map((p) => {
 
-    applyFilters(normalizedProducts);
+      return {
+        ...p,
+        category: (p.category || p.Category || p.categoryName || "").toLowerCase(),
+        subCategory: p.subCategory || p.SubCategory || p.subcategory || p.sub_category || "",
+      };
+    });
+
+    setNormalizedProducts(normalized);
+    setLoading(false);
   }
 }, [products]);
 
-  // ✅ Toggle category
+
   const toggleCategory = (e) => {
     const { value } = e.target;
     setCategory((prev) =>
@@ -38,25 +41,39 @@ const Collection = () => {
     );
   };
 
-  // ✅ Toggle subCategory
   const toggleSubCategory = (e) => {
     const { value } = e.target;
-    setSubCategory((prev) =>
-      prev.includes(value)
-        ? prev.filter((item) => item !== value)
-        : [...prev, value]
-    );
+    
+    setSubCategory((prev) => {
+      const isExisting = prev.some(item => 
+        item.toLowerCase() === value.toLowerCase()
+      );
+      
+      return isExisting
+        ? prev.filter(item => item.toLowerCase() !== value.toLowerCase())
+        : [...prev, value];
+    });
   };
 
-  // ✅ Áp dụng filter
-  const applyFilters = (baseProducts = products) => {
+  const sortProducts = (arr) => {
+    const sorted = [...arr];
+    if (sortBy === "Low to High") {
+      sorted.sort((a, b) => a.price - b.price);
+    } else if (sortBy === "High to Low") {
+      sorted.sort((a, b) => b.price - a.price);
+    }
+    return sorted;
+  };
+
+  const applyFilters = (baseProducts = normalizedProducts) => {
+    
     let filtered = baseProducts.slice();
 
     if (search.trim() !== "") {
       filtered = filtered.filter(
         (item) =>
           item.name.toLowerCase().includes(search.toLowerCase()) ||
-          item.description.toLowerCase().includes(search.toLowerCase())
+          item.description?.toLowerCase().includes(search.toLowerCase())
       );
     }
 
@@ -69,36 +86,29 @@ const Collection = () => {
     }
 
     if (subCategory.length > 0) {
-      filtered = filtered.filter((item) =>
-        subCategory.some(
-          (sub) => sub.toLowerCase() === (item.subCategory || "").toLowerCase()
-        )
-      );
+      filtered = filtered.filter((item) => {
+        const itemSubCategory = (item.subCategory || "").toLowerCase();
+        const isMatch = subCategory.some(
+          (sub) => sub.toLowerCase() === itemSubCategory
+        );
+        return isMatch;
+      });
+
     }
 
-    // Sau khi lọc xong thì sắp xếp
     filtered = sortProducts(filtered);
     setFilteredProducts(filtered);
   };
 
-  // ✅ Sắp xếp
-  const sortProducts = (arr) => {
-    const sorted = [...arr];
-    if (sortBy === "Low to High") {
-      sorted.sort((a, b) => a.price - b.price);
-    } else if (sortBy === "High to Low") {
-      sorted.sort((a, b) => b.price - a.price);
-    }
-    return sorted;
-  };
-
-  // ✅ Khi filter hoặc search thay đổi → áp lại filter
   useEffect(() => {
-    setCurrentPage(1); // reset về trang đầu
+    setCurrentPage(1);
     applyFilters();
-  }, [category, subCategory, search, showSearch, sortBy]);
+  }, [category, subCategory, search, showSearch, sortBy, normalizedProducts]);
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
-  // ✅ Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center h-[60vh]">
@@ -107,25 +117,21 @@ const Collection = () => {
     );
   }
 
-  // Pagination logic
-  const startIndex = (currentPage - 1) * productsPerPage;
-  const endIndex = startIndex + productsPerPage;
-  const currentProducts = filteredProducts.slice(startIndex, endIndex);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
   return (
+    
     <div className="flex gap-8 px-8 py-10">
       {/* LEFT FILTERS */}
       <div className="w-[250px] min-w-[250px]">
         <h2 className="font-semibold mb-4 text-lg text-center">FILTERS</h2>
 
+        {/* Categories */}
         <div className="mb-6 border border-gray-300 p-4 rounded-md shadow-sm">
           <h3 className="font-medium mb-3 text-sm uppercase text-gray-700">
             Categories
           </h3>
           <div className="space-y-2 text-sm">
-            {["Men", "Women", "Kids"].map((cat) => (
-              <label key={cat} className="flex items-center gap-2">
+            {["men", "women", "kids"].map((cat) => (
+              <label key={cat} className="flex items-center gap-2 capitalize">
                 <input
                   type="checkbox"
                   value={cat}
@@ -138,6 +144,7 @@ const Collection = () => {
           </div>
         </div>
 
+        {/* Sub Categories */}
         <div className="border border-gray-300 p-4 rounded-md shadow-sm">
           <h3 className="font-medium mb-3 text-sm uppercase text-gray-700">
             Type
@@ -149,7 +156,7 @@ const Collection = () => {
                   type="checkbox"
                   value={type}
                   onChange={toggleSubCategory}
-                  checked={subCategory.includes(type)}
+                  checked={subCategory.some(item => item.toLowerCase() === type.toLowerCase())}
                 />
                 {type}
               </label>
@@ -208,48 +215,48 @@ const Collection = () => {
               Prev
             </button>
 
-            {/* Smart Pagination */}
-              {(() => {
-                const pageButtons = [];
-                const showPages = 2; // số trang liền kề muốn hiển thị (mỗi bên)
+            {/* Smart pagination */}
+            {(() => {
+              const pageButtons = [];
+              const showPages = 2;
 
-                // Tạo mảng các trang nên hiển thị
-                for (let i = 1; i <= totalPages; i++) {
-                  if (
-                    i === 1 ||
-                    i === totalPages ||
-                    (i >= currentPage - showPages && i <= currentPage + showPages)
-                  ) {
-                    pageButtons.push(i);
-                  } else if (
-                    (i === currentPage - showPages - 1 && i > 1) ||
-                    (i === currentPage + showPages + 1 && i < totalPages)
-                  ) {
-                    pageButtons.push("ellipsis-" + i); // ký hiệu "..."
+              for (let i = 1; i <= totalPages; i++) {
+                if (
+                  i === 1 ||
+                  i === totalPages ||
+                  (i >= currentPage - showPages && i <= currentPage + showPages)
+                ) {
+                  pageButtons.push(i);
+                } else if (
+                  (i === currentPage - showPages - 1 && i > 1) ||
+                  (i === currentPage + showPages + 1 && i < totalPages)
+                ) {
+                  if (pageButtons[pageButtons.length - 1] !== "ellipsis") {
+                    pageButtons.push("ellipsis");
                   }
                 }
+              }
 
-                return pageButtons.map((page, idx) =>
-                  typeof page === "string" ? (
-                    <span key={idx} className="px-2 text-gray-400">
-                      ...
-                    </span>
-                  ) : (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 rounded-md border ${
-                        currentPage === page
-                          ? "bg-gray-800 text-white border-gray-800"
-                          : "border-gray-400 text-gray-700 hover:bg-gray-100"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  )
-                );
-              })()}
-
+              return pageButtons.map((page, idx) =>
+                page === "ellipsis" ? (
+                  <span key={idx} className="px-2 text-gray-400">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`px-3 py-1 rounded-md border ${
+                      currentPage === page
+                        ? "bg-gray-800 text-white border-gray-800"
+                        : "border-gray-400 text-gray-700 hover:bg-gray-100"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                )
+              );
+            })()}
 
             <button
               disabled={currentPage === totalPages}
