@@ -1,0 +1,46 @@
+{
+  "bsonType": "object",
+  "required": ["name", "email", "password"],
+  "properties": {
+    "name": {
+      "bsonType": "string",
+      "maxLength": 255,
+      "description": "Username, required, maximum 255 characters"
+    },
+    "email": {
+      "bsonType": "string",
+      "maxLength": 255,
+      "pattern": "^.+@.+$",
+      "description": "User email, required, valid and maximum 255 characters"
+    },
+    "password": {
+      "bsonType": "string",
+      "minLength": 8,
+      "maxLength": 255,
+      "description": "User password, required, minimum 8 characters"
+    },
+      "cartData": {
+      "bsonType": "array",
+      "description": "User shopping cart, optional",
+      "items": {
+        "bsonType": "object",
+        "required": ["productId", "quantity", "sizes"],
+        "properties": {
+          "productId": { "bsonType": "objectId" },
+          "quantity": { "bsonType": "int" },
+          "sizes" : {"bsonType": "array"}
+        }
+      }
+    },
+    "email_verified_at": {
+      "bsonType": ["date", "null"],
+      "description": "Email verification time"
+    },
+    "remember_token": {
+      "bsonType": ["string", "null"],
+      "description": "Memo tokens"
+    },
+    "created_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" }
+  }
+}

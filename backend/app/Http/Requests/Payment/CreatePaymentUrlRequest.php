@@ -23,9 +23,9 @@ class CreatePaymentUrlRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'orderId.required' => 'Order ID là bắt buộc.',
-            'orderId.exists' => 'Order không tồn tại.',
-            'bankCode.string' => 'Bank code phải là chuỗi ký tự.'
+            'orderId.required' => 'Order ID is required.',
+            'orderId.exists' => 'Order not found.',
+            'bankCode.string' => 'Bank code must be a character string'
         ];
     }
 }

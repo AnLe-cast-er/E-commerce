@@ -22,9 +22,9 @@ class AddToCartRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'itemId.required' => 'Sản phẩm không được trống',
-            'itemId.exists' => 'Sản phẩm không tồn tại',
-            'size.required' => 'Vui lòng chọn size'
+            'itemId.required' => 'Product cannot be empty',
+            'itemId.exists' => 'Product does not exist',
+            'size.required' => 'Please choose size'
         ];
     }
 }

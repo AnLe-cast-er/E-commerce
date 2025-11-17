@@ -15,8 +15,10 @@ public function rules(): array
     return [
         'name' => 'nullable|string|max:255',
         'price' => 'nullable|numeric|min:0.01',
-        'image' => 'nullable|array',
-        'image.*' => 'string|url', 
+        'new_image' => 'nullable|array',
+        'new_image.*' => 'string|url', 
+        'existing_images' => 'nullable|array',   
+        'existing_images.*' => 'string|url',
         'description' => 'nullable|string',
         'category' => 'nullable|string',
         'subCategory' => 'nullable|string',

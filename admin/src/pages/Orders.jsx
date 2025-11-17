@@ -8,8 +8,8 @@ const currency = import.meta.env.VITE_CURRENCY || "$"
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const token = localStorage.getItem("token"); // lấy token admin
-  console.log("Admin token:", token);
+  const token = localStorage.getItem("token"); // get admin token
+  // console.log("Admin token:", token);
 
   const fetchOrders = async () => {
     if (!token) return console.error("No admin token found");
@@ -105,9 +105,10 @@ const handleStatusChange = async (orderId, newStatus) => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div>
                   <p className="font-medium">Customer</p>
-                  <p>{order.address?.fullName || "N/A"}</p>
-                  <p>{order.address?.phone || "N/A"}</p>
-                  <p>{order.address?.email || "N/A"}</p>
+                  <p><span className="font-medium">Recipient:</span>{order.address?.fullName || "N/A"}</p>
+                  <p><span className="font-medium">Phone:</span> {order.address?.phone || "N/A"}</p>
+                  <p><span className="font-medium">Email:</span>{order.address?.email || "N/A"}</p>
+                  <p><span className="font-medium">Address:</span>{order.address?.address || "N/A"}</p>
                 </div>
 
                 <div>

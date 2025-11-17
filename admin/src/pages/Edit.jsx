@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const Edit = () => {
-  const { id } = useParams();
+  const {id} = useParams();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
@@ -18,15 +18,28 @@ const Edit = () => {
   const [subCategory, setSubCategory] = useState('Topwear');
   const [sizes, setSizes] = useState([]);
   const [bestseller, setBestseller] = useState(false);
-  
-  // Image states
+  const [validationErrors, setValidationErrors] = useState({});
   const [image1, setImage1] = useState(null);
   const [image2, setImage2] = useState(null);
   const [image3, setImage3] = useState(null);
   const [image4, setImage4] = useState(null);
-  const [imagePreviews, setImagePreviews] = useState(Array(4).fill(null));
+  const [imagePreviews, setImagePreviews] = useState(Array(4).fill(null)); 
+  
+  //upload new image in cloudinary
+  const uploadToCloudinary = async (file) => {
+    const data = new FormData();
+    data.append('file', file);
+    data.append('upload_preset', 'mern_ecommerce_preset'); 
+    data.append('cloud_name', 'do0o4i3pu'); 
 
-  // Get authentication headers
+    const res = await fetch(`https://api.cloudinary.com/v1_1/do0o4i3pu/image/upload`, {
+      method: 'POST',
+      body: data,
+    });
+    const result = await res.json();
+    return result.secure_url; 
+  };
+
   const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -36,7 +49,6 @@ const Edit = () => {
     }
     return {
       'Authorization': `Bearer ${token}`,
-      'Content-Type': 'multipart/form-data'
     };
   };
 
@@ -44,31 +56,35 @@ const Edit = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        setLoading(true);
         const headers = getAuthHeaders();
-        if (!headers.Authorization) return; // Skip if not authenticated
+        if (!headers.Authorization) return;
         
-        const response = await axios.post(
-          `${backendUrl}/api/product/single`,
-          { productId: id },
-          { headers: { ...headers, 'Content-Type': 'application/json' } }
+        const response = await axios.get(
+          `${backendUrl}/api/product/${id}`,
+          { headers: { 'Authorization': headers.Authorization } }
         );
         
-        if (response.data.success && response.data.product) {
-          const productData = response.data.product;
+        if (response.data.data) {
+          const productData = response.data.data;
           
-          // Set individual form fields
           setName(productData.name || '');
           setDescription(productData.description || '');
-          setPrice(productData.price || '');
+          setPrice(productData.price ? productData.price.toString() : ''); 
           setCategory(productData.category || 'Men');
           setSubCategory(productData.subCategory || 'Topwear');
           setSizes(Array.isArray(productData.sizes) ? productData.sizes : []);
           setBestseller(productData.bestseller || false);
           
-          // Set image previews
           if (Array.isArray(productData.image)) {
-            const previews = [...productData.image, ...Array(4 - productData.image.length).fill(null)];
-            setImagePreviews(previews.slice(0, 4));
+            const imagesArray = productData.image.slice(0, 4);
+            const previews = [...imagesArray, ...Array(4 - imagesArray.length).fill(null)];
+            
+            setImage1(imagesArray[0] || null);
+            setImage2(imagesArray[1] || null);
+            setImage3(imagesArray[2] || null);
+            setImage4(imagesArray[3] || null);
+            setImagePreviews(previews);
           }
         } else {
           toast.error(response.data.message || 'Failed to load product details');
@@ -87,10 +103,13 @@ const Edit = () => {
       }
     };
 
-    fetchProduct();
+    if (id) {
+        fetchProduct();
+    } else {
+        navigate('/list'); 
+    }
   }, [id, navigate]);
 
-  // Handle size changes
   const handleSizeChange = (size) => {
     setSizes(prevSizes => {
       if (prevSizes.includes(size)) {
@@ -101,7 +120,6 @@ const Edit = () => {
     });
   };
 
-  // Handle image upload for each input
   const handleImageChange = (e, index) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -110,7 +128,6 @@ const Edit = () => {
     newPreviews[index] = URL.createObjectURL(file);
     setImagePreviews(newPreviews);
     
-    // Set the corresponding image state
     switch(index) {
       case 0: setImage1(file); break;
       case 1: setImage2(file); break;
@@ -122,11 +139,11 @@ const Edit = () => {
 
   // Remove image
   const removeImage = (index) => {
+    // Clear preview
     const newPreviews = [...imagePreviews];
     newPreviews[index] = null;
     setImagePreviews(newPreviews);
     
-    // Clear the corresponding image state
     switch(index) {
       case 0: setImage1(null); break;
       case 1: setImage2(null); break;
@@ -138,79 +155,59 @@ const Edit = () => {
 
   // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    
-    try {
-      const headers = getAuthHeaders();
-      if (!headers.Authorization) {
-        toast.error('Authentication required');
-        navigate('/login');
-        return;
-      }
+  e.preventDefault();
+  setSaving(true);
+  try {
+    const headers = getAuthHeaders();
+    if (!headers.Authorization) return;
 
-      const formData = new FormData();
-      
-      // Add product data
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('price', price);
-      formData.append('category', category);
-      formData.append('subCategory', subCategory);
-      
-      // Ensure sizes is always an array before stringifying
-      const sizesToSave = Array.isArray(sizes) ? sizes : [];
-      formData.append('sizes', JSON.stringify(sizesToSave));
-      
-      formData.append('bestseller', bestseller ? 'true' : 'false');
-      
-      // Add images if they exist and are files (not preview URLs)
-      if (image1 instanceof File) formData.append('image1', image1);
-      if (image2 instanceof File) formData.append('image2', image2);
-      if (image3 instanceof File) formData.append('image3', image3);
-      if (image4 instanceof File) formData.append('image4', image4);
-      
-      console.log('Sending form data:', {
-        name,
-        description,
-        price,
-        category,
-        subCategory,
-        sizes: sizesToSave,
-        bestseller,
-        hasImage1: !!image1,
-        hasImage2: !!image2,
-        hasImage3: !!image3,
-        hasImage4: !!image4
-      });
-      
-      const response = await axios.put(
-        `${backendUrl}/api/product/update/${id}`,
-        formData,
-        { 
-          headers: {
-            'Authorization': headers.Authorization,
-            'Content-Type': 'multipart/form-data'
-          }
+    const allImages = [image1, image2, image3, image4];
+    const existingImages = [];
+    const newImages = [];
+
+    for (const img of allImages) {
+      if (img) {
+        if (typeof img === "string") {
+          existingImages.push(img); 
+        } else if (img instanceof File) {
+          const uploadedUrl = await uploadToCloudinary(img);
+          newImages.push(uploadedUrl);
         }
-      );
-      
-      if (response.data.success) {
-        toast.success('Product updated successfully');
-        navigate('/list');
-      } else {
-        toast.error(response.data.message || 'Failed to update product');
       }
-    } catch (error) {
-      console.error('Error updating product:', error);
-      toast.error(error.response?.data?.message || 'Error updating product');
-      if (error.response?.status === 401) {
-        navigate('/login');
-      }
-    } finally {
-      setSaving(false);
     }
-  };
+
+    const payload = {
+      name,
+      description,
+      price,
+      category,
+      subCategory,
+      sizes,
+      bestseller,
+      new_image: newImages,        
+      existing_images: existingImages, 
+    };
+
+    const res = await axios.post(
+      `${backendUrl}/api/product/update/${id}`,
+      payload,
+      { headers: headers }
+    );
+    console.log("All images state:", image1, image2, image3, image4);
+    console.log("Existing images:", existingImages);
+    console.log("New images (to upload):", newImages);
+    toast.success("Product updated successfully!");
+    console.log("Update success:", res.data);
+    navigate("/list");
+  } catch (error) {
+    console.error("Error updating product:", error.response?.data || error);
+    toast.error(error.response?.data?.message || "Error updating product");
+  } finally {
+    setSaving(false);
+  }
+};
+
+
 
   if (loading) {
     return (
@@ -235,6 +232,7 @@ const Edit = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           />
+          {validationErrors.name && <p className="text-red-500 text-sm mt-1">{validationErrors.name[0]}</p>}
         </div>
 
         {/* Description */}
@@ -247,6 +245,7 @@ const Edit = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           />
+          {validationErrors.description && <p className="text-red-500 text-sm mt-1">{validationErrors.description[0]}</p>}
         </div>
 
         {/* Price */}
@@ -259,6 +258,7 @@ const Edit = () => {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             required
           />
+          {validationErrors.price && <p className="text-red-500 text-sm mt-1">{validationErrors.price[0]}</p>}
         </div>
 
         {/* Category and Subcategory */}
@@ -309,6 +309,7 @@ const Edit = () => {
               </button>
             ))}
           </div>
+          {validationErrors.sizes && <p className="text-red-500 text-sm mt-1">{validationErrors.sizes[0]}</p>}
         </div>
 
         {/* Bestseller */}
@@ -341,7 +342,7 @@ const Edit = () => {
                 >
                   {imagePreviews[index] ? (
                     <img
-                      src={imagePreviews[index]}
+                      src={imagePreviews[index] instanceof File ? URL.createObjectURL(imagePreviews[index]) : imagePreviews[index]}
                       alt={`Preview ${index + 1}`}
                       className="h-full w-full object-cover"
                     />

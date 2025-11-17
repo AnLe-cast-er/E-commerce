@@ -15,10 +15,10 @@ public function rules(): array
         'name' => 'required|string',
         'price' => 'required|numeric',
         'image' => 'required|array|min:1',
-        'description' => 'nullable|string',
-        'category' => 'nullable|string',
+        'description' => 'required|string',
+        'category' => 'required|string',
         'subCategory' => 'nullable|string',
-        'sizes' => 'nullable|array',
+        'sizes' => 'required|array',
         'bestseller' => 'nullable|boolean'
         ];
     }

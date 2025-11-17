@@ -1,0 +1,70 @@
+{
+  "bsonType": "object",
+  "title": "Order Validation Schema",
+  "required": ["userId", "items", "amount", "status", "paymentMethod", "payment", "address"],
+  "properties": {
+    "userId": {
+      "bsonType": "objectId",
+      "description": "ID of the user who placed the order. Required."
+    },
+    "items": {
+      "bsonType": "array",
+      "description": "List of products in the order.",
+      "minItems": 1,
+      "items": {
+        "bsonType": "object",
+        "required": ["productId", "quantity", "price", "name"],
+        "properties": {
+          "productId": { "bsonType": "objectId" },
+          "name": { "bsonType": "string" },
+          "quantity": {
+            "bsonType": "int",
+            "minimum": 1
+          },
+          "price": {
+            "bsonType": "double",
+            "minimum": 0
+          },
+          "size": { "bsonType": ["string", "null"] },
+          "image": { "bsonType": ["string", "null"] }
+        }
+      }
+    },
+    "address": {
+      "bsonType": "object",
+      "description": "Shipping address information. Required.",
+      "required": ["fullName", "phone", "address"],
+      "properties": {
+        "fullName": { "bsonType": "string" },
+        "phone": { "bsonType": "string" },
+        "address": { "bsonType": "string" },
+        "email": { "bsonType": ["string", "null"] }
+      }
+    },
+    "amount": {
+      "bsonType": "double",
+      "description": "Total order amount.",
+      "minimum": 0
+    },
+    "status": {
+      "bsonType": "string",
+      "description": "Order status. Required.",
+      "enum": ["Order Placed", "Processing", "Shipped", "Delivered", "Cancelled"]
+    },
+    "paymentMethod": {
+      "bsonType": "string",
+      "description": "Payment method. Required.",
+      "enum": ["COD", "VNPAY"]
+    },
+    "payment": {
+      "bsonType": "bool",
+      "description": "Payment status (true/false). Required."
+    },
+    "date": {
+      "bsonType": "date",
+      "description": "Order date."
+    },
+    "created_at": { "bsonType": ["date", "null"] },
+    "updated_at": { "bsonType": ["date", "null"] }
+  }
+}
